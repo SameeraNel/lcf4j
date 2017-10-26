@@ -28,10 +28,11 @@
           <artifactId>netty-all</artifactId>
           <version>4.1.16.Final</version>
       </dependency>
-      <!--<dependency>-->
-          <!--<groupId>io.netty</groupId>-->
-          <!--<artifactId>netty-handler</artifactId>-->
-          <!--<version>4.1.16.Final</version>-->
-      <!--</dependency>-->
+      <dependency>
+        <groupId>com.h2database</groupId>
+        <artifactId>h2</artifactId>
+        <version>1.4.196</version>
+        <scope>test</scope>
+      </dependency>
   </dependencies>
 </project>
