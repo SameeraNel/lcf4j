@@ -35,9 +35,9 @@ public final class UptimeClient {
     static final String HOST = System.getProperty("host", "127.0.0.1");
     static final int PORT = Integer.parseInt(System.getProperty("port", "8080"));
     // Sleep 5 seconds before a reconnection attempt.
-    static final int RECONNECT_DELAY = Integer.parseInt(System.getProperty("reconnectDelay", "5"));
+    static final int RECONNECT_DELAY = Integer.parseInt(System.getProperty("reconnectDelay", "1"));
     // Reconnect when the server sends nothing for 10 seconds.
-    private static final int READ_TIMEOUT = Integer.parseInt(System.getProperty("readTimeout", "10"));
+    private static final int READ_TIMEOUT = Integer.parseInt(System.getProperty("readTimeout", "1"));
 
     private static final UptimeClientHandler handler = new UptimeClientHandler();
     private static final Bootstrap bs = new Bootstrap();
@@ -61,7 +61,11 @@ public final class UptimeClient {
             public void operationComplete(ChannelFuture future) throws Exception {
                 if (future.cause() != null) {
                     handler.startTime = -1;
-                    handler.println("Failed to connect: " + future.cause());
+                   // handler.println("Failed to connect to : "  + HOST + ':' + PORT);
+                    if(handler.errorTime == -1 ) {
+                        handler.errorTime = System.currentTimeMillis();
+                    }
+                    handler.println("");
                 }
             }
         });

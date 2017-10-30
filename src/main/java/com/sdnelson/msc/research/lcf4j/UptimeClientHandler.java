@@ -15,6 +15,8 @@
  */
 package com.sdnelson.msc.research.lcf4j;
 
+import com.diogonunes.jcdp.color.ColoredPrinter;
+import com.diogonunes.jcdp.color.api.Ansi;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -22,6 +24,8 @@ import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 
 import java.util.concurrent.TimeUnit;
+
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 /**
  * Keep reconnecting to the server while printing out the current uptime and
@@ -31,13 +35,18 @@ import java.util.concurrent.TimeUnit;
 public class UptimeClientHandler extends SimpleChannelInboundHandler<Object> {
 
     long startTime = -1;
+    long errorTime = -1;
+    ColoredPrinter printer = new ColoredPrinter.Builder(1, false)
+             //setting format
+            .build();
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         if (startTime < 0) {
             startTime = System.currentTimeMillis();
         }
-        println("Connected to: " + ctx.channel().remoteAddress());
+//        println("Heartbeat received.");
+        println("");
     }
 
     @Override
@@ -54,23 +63,23 @@ public class UptimeClientHandler extends SimpleChannelInboundHandler<Object> {
         IdleStateEvent e = (IdleStateEvent) evt;
         if (e.state() == IdleState.READER_IDLE) {
             // The connection was OK but there was no traffic for last period.
-            println("Disconnecting due to no inbound traffic");
+         //   println("Heart beat completed.");
             ctx.close();
         }
     }
 
     @Override
     public void channelInactive(final ChannelHandlerContext ctx) {
-        println("Disconnected from: " + ctx.channel().remoteAddress());
+       // println("Heartbeat completed.");
     }
 
     @Override
     public void channelUnregistered(final ChannelHandlerContext ctx) throws Exception {
-        println("Sleeping for: " + UptimeClient.RECONNECT_DELAY + 's');
+        //println("Sleeping for: " + UptimeClient.RECONNECT_DELAY + 's');
 
         ctx.channel().eventLoop().schedule(new Runnable() {
             public void run() {
-                println("Reconnecting to: " + UptimeClient.HOST + ':' + UptimeClient.PORT);
+            //    println("Heartbeat starting...");
                 UptimeClient.connect();
             }
         }, UptimeClient.RECONNECT_DELAY, TimeUnit.SECONDS);
@@ -78,15 +87,34 @@ public class UptimeClientHandler extends SimpleChannelInboundHandler<Object> {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        cause.printStackTrace();
-        ctx.close();
+        try {
+            channelUnregistered(ctx);
+        } catch (Exception e) {
+            ctx.close();
+        }
     }
 
     void println(String msg) {
         if (startTime < 0) {
-            System.err.format("[SERVER IS DOWN] %s%n", msg);
+            long errorMillis = System.currentTimeMillis() - errorTime;
+            final String formattedErrorString =
+                    String.format("[ "+ UptimeClient.HOST+ ":" + UptimeClient.PORT +" ] [DOWNTIME] [%d Days %d Hours %d Minutes %d Seconds] %s%n",
+                                  MILLISECONDS.toDays(errorMillis),
+                                  MILLISECONDS.toHours(errorMillis) - TimeUnit.DAYS.toHours(MILLISECONDS.toDays(errorMillis)),
+                                  MILLISECONDS.toMinutes(errorMillis) - TimeUnit.HOURS.toMinutes(MILLISECONDS.toHours(errorMillis)),
+                                  MILLISECONDS.toSeconds(errorMillis) - TimeUnit.MINUTES.toSeconds(MILLISECONDS.toMinutes(errorMillis)),msg);
+            printer.println(formattedErrorString, Ansi.Attribute.BOLD, Ansi.FColor.RED, Ansi.BColor.NONE);
         } else {
-            System.err.format("[UPTIME: %5ds] %s%n", (System.currentTimeMillis() - startTime) / 1000, msg);
+            errorTime = -1;
+            long millis = System.currentTimeMillis() - startTime;
+            final String formattedString = String.format(
+                    "[ "+ UptimeClient.HOST+ ":" + UptimeClient.PORT +" ] [ UPTIME ] [%d Days %d Hours %d Minutes %d Seconds] %s%n",
+                    MILLISECONDS.toDays(millis),
+                    MILLISECONDS.toHours(millis) - TimeUnit.DAYS.toHours(MILLISECONDS.toDays(millis)),
+                    MILLISECONDS.toMinutes(millis) - TimeUnit.HOURS.toMinutes(MILLISECONDS.toHours(millis)),
+                    MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(MILLISECONDS.toMinutes(millis)), msg);
+
+            printer.println(formattedString, Ansi.Attribute.BOLD, Ansi.FColor.GREEN, Ansi.BColor.NONE);
         }
     }
 }
