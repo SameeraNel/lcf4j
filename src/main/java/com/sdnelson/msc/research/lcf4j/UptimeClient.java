@@ -59,13 +59,15 @@ public final class UptimeClient {
     static void connect() {
         bs.connect().addListener(new ChannelFutureListener() {
             public void operationComplete(ChannelFuture future) throws Exception {
-                if (future.cause() != null) {
-                    handler.startTime = -1;
-                   // handler.println("Failed to connect to : "  + HOST + ':' + PORT);
-                    if(handler.errorTime == -1 ) {
-                        handler.errorTime = System.currentTimeMillis();
+                synchronized (handler.errorTime ) {
+                    if (future.cause() != null) {
+                        handler.startTime = -1;
+                        // handler.println("Failed to connect to : "  + HOST + ':' + PORT);
+                        if (handler.errorTime == -1) {
+                            handler.errorTime = System.currentTimeMillis();
+                        }
+                        handler.println("");
                     }
-                    handler.println("");
                 }
             }
         });

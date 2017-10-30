@@ -35,7 +35,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 public class UptimeClientHandler extends SimpleChannelInboundHandler<Object> {
 
     long startTime = -1;
-    long errorTime = -1;
+    Long errorTime = -1L;
     ColoredPrinter printer = new ColoredPrinter.Builder(1, false)
              //setting format
             .build();
@@ -105,7 +105,9 @@ public class UptimeClientHandler extends SimpleChannelInboundHandler<Object> {
                                   MILLISECONDS.toSeconds(errorMillis) - TimeUnit.MINUTES.toSeconds(MILLISECONDS.toMinutes(errorMillis)),msg);
             printer.println(formattedErrorString, Ansi.Attribute.BOLD, Ansi.FColor.RED, Ansi.BColor.NONE);
         } else {
-            errorTime = -1;
+            synchronized (errorTime) {
+                errorTime = -1L;
+            }
             long millis = System.currentTimeMillis() - startTime;
             final String formattedString = String.format(
                     "[ "+ UptimeClient.HOST+ ":" + UptimeClient.PORT +" ] [ UPTIME ] [%d Days %d Hours %d Minutes %d Seconds] %s%n",

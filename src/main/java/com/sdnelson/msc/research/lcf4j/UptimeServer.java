@@ -41,8 +41,8 @@ public final class UptimeServer {
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
-            ServerBootstrap b = new ServerBootstrap();
-            b.group(bossGroup, workerGroup)
+            ServerBootstrap bootstrap = new ServerBootstrap();
+            bootstrap.group(bossGroup, workerGroup)
                     .channel(NioServerSocketChannel.class)
                     .handler(new LoggingHandler(LogLevel.INFO))
                     .childHandler(new ChannelInitializer<SocketChannel>() {
@@ -53,12 +53,9 @@ public final class UptimeServer {
                     });
 
             // Bind and start to accept incoming connections.
-            ChannelFuture f = b.bind(PORT).sync();
+            ChannelFuture channelFuture = bootstrap.bind(PORT).sync();
+            channelFuture.channel().closeFuture().sync();
 
-            // Wait until the server socket is closed.
-            // In this example, this does not happen, but you can do that to gracefully
-            // shut down your server.
-            f.channel().closeFuture().sync();
         } finally {
             workerGroup.shutdownGracefully();
             bossGroup.shutdownGracefully();
