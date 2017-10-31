@@ -66,7 +66,7 @@ public final class UptimeClient {
                         if (handler.errorTime == -1) {
                             handler.errorTime = System.currentTimeMillis();
                         }
-                        handler.println("");
+                        handler.println("0");
                     }
                 }
             }
