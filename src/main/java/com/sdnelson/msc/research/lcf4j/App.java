@@ -6,27 +6,28 @@ import java.util.Properties;
 
 public class App {
 
-    public static void main( String[] args ){
+    public static void main( String[] args ) throws Exception {
 
+        final Properties properties = loadConfigFile();
+        new UptimeServer().startServer(8060);
+
+    }
+
+    private static Properties loadConfigFile() {
         Properties prop = new Properties();
         InputStream input = null;
 
         try {
 
-            String filename = "config.properties";
+            String filename = "lcf4j.properties";
             input = App.class.getClassLoader().getResourceAsStream(filename);
             if(input==null){
                 System.out.println("Sorry, unable to find " + filename);
-                return;
+                return null;
             }
 
-            //load a properties file from class path, inside static method
             prop.load(input);
-
-            //get the property value and print it out
-            System.out.println(prop.getProperty("database"));
-            System.out.println(prop.getProperty("dbuser"));
-            System.out.println(prop.getProperty("dbpassword"));
+            System.out.println(prop.getProperty("lcf4j.nodes.list"));
 
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -39,6 +40,6 @@ public class App {
                 }
             }
         }
-
+        return prop;
     }
 }

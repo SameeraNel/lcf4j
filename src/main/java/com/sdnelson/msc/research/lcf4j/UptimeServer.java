@@ -25,18 +25,15 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 
-/**
- * Uptime server is served as a connection server.
- * So it simply discards all message received.
- */
+
 public final class UptimeServer {
-    private static final int PORT = Integer.parseInt(System.getProperty("port", "8080"));
+//    private static final int PORT = Integer.parseInt(System.getProperty("port", "8080"));
     private static final UptimeServerHandler handler = new UptimeServerHandler();
 
-    private UptimeServer() {
-    }
+//    private UptimeServer() {
+//    }
 
-    public static void main(String[] args) throws Exception {
+    public void startServer(int port) throws Exception {
 
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup();
@@ -53,7 +50,7 @@ public final class UptimeServer {
                     });
 
             // Bind and start to accept incoming connections.
-            ChannelFuture channelFuture = bootstrap.bind(PORT).sync();
+            ChannelFuture channelFuture = bootstrap.bind(port).sync();
             channelFuture.channel().closeFuture().sync();
 
         } finally {
