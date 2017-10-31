@@ -15,7 +15,6 @@
  */
 package com.sdnelson.msc.research.lcf4j;
 
-import com.diogonunes.jcdp.color.ColoredPrinter;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -23,9 +22,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 @Sharable
 public class UptimeServerHandler extends SimpleChannelInboundHandler<Object> {
 
-    ColoredPrinter printer = new ColoredPrinter.Builder(1, false)
-            //setting format
-            .build();
+
 
 //    @Override
 //    public void channelActive(ChannelHandlerContext ctx) throws Exception {

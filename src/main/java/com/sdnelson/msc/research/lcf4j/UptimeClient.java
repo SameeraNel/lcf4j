@@ -24,6 +24,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
+import org.apache.log4j.Logger;
 
 /**
  * Connects to a server periodically to measure and print the uptime of the
@@ -32,32 +33,46 @@ import io.netty.handler.timeout.IdleStateHandler;
  */
 public final class UptimeClient {
 
-    static final String HOST = System.getProperty("host", "127.0.0.1");
-    static final int PORT = Integer.parseInt(System.getProperty("port", "8080"));
-    // Sleep 5 seconds before a reconnection attempt.
+    final static Logger logger = Logger.getLogger(UptimeClient.class);
     static final int RECONNECT_DELAY = Integer.parseInt(System.getProperty("reconnectDelay", "1"));
-    // Reconnect when the server sends nothing for 10 seconds.
     private static final int READ_TIMEOUT = Integer.parseInt(System.getProperty("readTimeout", "1"));
+    private UptimeClientHandler handler;
+    private Bootstrap bootstrap;
+    private EventLoopGroup group;
 
-    private static final UptimeClientHandler handler = new UptimeClientHandler();
-    private static final Bootstrap bs = new Bootstrap();
+    public UptimeClient() {
+        bootstrap = new Bootstrap();
+        handler = new UptimeClientHandler();
+        group = new NioEventLoopGroup();
+    }
 
-    public static void main(String[] args) throws Exception {
-        EventLoopGroup group = new NioEventLoopGroup();
-        bs.group(group)
-                .channel(NioSocketChannel.class)
-                .remoteAddress(HOST, PORT)
-                .handler(new ChannelInitializer<SocketChannel>() {
-                    @Override
-                    protected void initChannel(SocketChannel ch) throws Exception {
+    public Runnable startClient(final String host, final int port) throws Exception {
+        return RunnableClient(host, port);
+    }
+
+    private Runnable RunnableClient(String host, int port) {
+        Runnable runnableTask = () -> {
+            try {
+                logger.debug("Client node requested for " + host + ":" + port);
+                handler.setHost(host);
+                handler.setPort(port);
+                bootstrap.group(group).channel(NioSocketChannel.class).remoteAddress(host, port).handler(new ChannelInitializer<SocketChannel>() {
+
+                    @Override protected void initChannel(SocketChannel ch) throws Exception {
                         ch.pipeline().addLast(new IdleStateHandler(READ_TIMEOUT, 0, 0), handler);
                     }
                 });
-        bs.connect();
+                bootstrap.connect();
+                logger.info("Client started @ " + host + ":" + port);
+            } finally {
+                group.shutdownGracefully();
+            }
+        };
+        return runnableTask;
     }
 
-    static void connect() {
-        bs.connect().addListener(new ChannelFutureListener() {
+    void connect() {
+        bootstrap.connect().addListener(new ChannelFutureListener() {
             public void operationComplete(ChannelFuture future) throws Exception {
                 synchronized (handler.errorTime ) {
                     if (future.cause() != null) {

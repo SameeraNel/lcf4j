@@ -24,38 +24,53 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import org.apache.log4j.Logger;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public final class UptimeServer {
-//    private static final int PORT = Integer.parseInt(System.getProperty("port", "8080"));
-    private static final UptimeServerHandler handler = new UptimeServerHandler();
 
-//    private UptimeServer() {
-//    }
+    final static Logger logger = Logger.getLogger(UptimeServer.class);
+    private UptimeServerHandler handler;
+
+    public UptimeServer() {
+        handler = new UptimeServerHandler();
+    }
 
     public void startServer(int port) throws Exception {
-
-        EventLoopGroup bossGroup = new NioEventLoopGroup(1);
+        EventLoopGroup bossGroup = new NioEventLoopGroup(2);
         EventLoopGroup workerGroup = new NioEventLoopGroup();
-        try {
-            ServerBootstrap bootstrap = new ServerBootstrap();
-            bootstrap.group(bossGroup, workerGroup)
-                    .channel(NioServerSocketChannel.class)
-                    .handler(new LoggingHandler(LogLevel.INFO))
-                    .childHandler(new ChannelInitializer<SocketChannel>() {
-                        @Override
-                        public void initChannel(SocketChannel ch) {
-                            ch.pipeline().addLast(handler);
-                        }
-                    });
+        final Runnable runnableServer = RunnableServer(port, bossGroup, workerGroup);
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        executor.execute(runnableServer);
+    }
 
-            // Bind and start to accept incoming connections.
-            ChannelFuture channelFuture = bootstrap.bind(port).sync();
-            channelFuture.channel().closeFuture().sync();
+    private Runnable RunnableServer(int port, EventLoopGroup bossGroup, EventLoopGroup workerGroup) {
+        Runnable runnableTask = () -> {
+            try {
+                ServerBootstrap bootstrap = new ServerBootstrap();
+                bootstrap.group(bossGroup, workerGroup)
+                         .channel(NioServerSocketChannel.class)
+                         .handler(new LoggingHandler(LogLevel.INFO))
+                         .childHandler(new ChannelInitializer<SocketChannel>() {
 
-        } finally {
-            workerGroup.shutdownGracefully();
-            bossGroup.shutdownGracefully();
-        }
+                             @Override public void initChannel(SocketChannel ch) {
+                                 ch.pipeline().addLast(handler);
+                             }
+                         });
+
+                // Bind and start to accept incoming connections.
+                ChannelFuture channelFuture = bootstrap.bind(port).sync();
+                logger.info("Server started @ localhost" + ":" + port);
+                channelFuture.channel().closeFuture().sync();
+            } catch (InterruptedException e) {
+                logger.error(e.getMessage());
+            } finally {
+                workerGroup.shutdownGracefully();
+                bossGroup.shutdownGracefully();
+            }
+        };
+        return runnableTask;
     }
 }

@@ -15,13 +15,12 @@
  */
 package com.sdnelson.msc.research.lcf4j;
 
-import com.diogonunes.jcdp.color.ColoredPrinter;
-import com.diogonunes.jcdp.color.api.Ansi;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
+import org.apache.log4j.Logger;
 
 import java.util.concurrent.TimeUnit;
 
@@ -34,11 +33,11 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 @Sharable
 public class UptimeClientHandler extends SimpleChannelInboundHandler<Object> {
 
+    final static Logger logger = Logger.getLogger(UptimeClientHandler.class);
     long startTime = -1;
     Long errorTime = -1L;
-    ColoredPrinter printer = new ColoredPrinter.Builder(1, false)
-             //setting format
-            .build();
+    private String host;
+    private int port;
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
@@ -80,7 +79,7 @@ public class UptimeClientHandler extends SimpleChannelInboundHandler<Object> {
         ctx.channel().eventLoop().schedule(new Runnable() {
             public void run() {
             //    println("Heartbeat starting...");
-                UptimeClient.connect();
+                new UptimeClient().connect();
             }
         }, UptimeClient.RECONNECT_DELAY, TimeUnit.SECONDS);
     }
@@ -98,25 +97,41 @@ public class UptimeClientHandler extends SimpleChannelInboundHandler<Object> {
         if (startTime < 0) {
             long errorMillis = System.currentTimeMillis() - errorTime;
             final String formattedErrorString =
-                    String.format("[ "+ UptimeClient.HOST+ ":" + UptimeClient.PORT +" ] [DOWNTIME] [%d Days %d Hours %d Minutes %d Seconds] %s%n",
+                    String.format("[ "+ host + ":" + port +" ] [DOWNTIME] [%d Days %d Hours %d Minutes %d Seconds] %s",
                                   MILLISECONDS.toDays(errorMillis),
                                   MILLISECONDS.toHours(errorMillis) - TimeUnit.DAYS.toHours(MILLISECONDS.toDays(errorMillis)),
                                   MILLISECONDS.toMinutes(errorMillis) - TimeUnit.HOURS.toMinutes(MILLISECONDS.toHours(errorMillis)),
                                   MILLISECONDS.toSeconds(errorMillis) - TimeUnit.MINUTES.toSeconds(MILLISECONDS.toMinutes(errorMillis)),msg);
-            printer.println(formattedErrorString, Ansi.Attribute.BOLD, Ansi.FColor.RED, Ansi.BColor.NONE);
+            logger.info(formattedErrorString);
         } else {
             synchronized (errorTime) {
                 errorTime = -1L;
             }
             long millis = System.currentTimeMillis() - startTime;
             final String formattedString = String.format(
-                    "[ "+ UptimeClient.HOST+ ":" + UptimeClient.PORT +" ] [ UPTIME ] [%d Days %d Hours %d Minutes %d Seconds] %s%n",
+                    "[ "+ host + ":" + port +" ] [ UPTIME ] [%d Days %d Hours %d Minutes %d Seconds] %s",
                     MILLISECONDS.toDays(millis),
                     MILLISECONDS.toHours(millis) - TimeUnit.DAYS.toHours(MILLISECONDS.toDays(millis)),
                     MILLISECONDS.toMinutes(millis) - TimeUnit.HOURS.toMinutes(MILLISECONDS.toHours(millis)),
                     MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(MILLISECONDS.toMinutes(millis)), msg);
 
-            printer.println(formattedString, Ansi.Attribute.BOLD, Ansi.FColor.GREEN, Ansi.BColor.NONE);
+            logger.info(formattedString);
         }
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
     }
 }

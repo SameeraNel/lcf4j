@@ -1,16 +1,35 @@
 package com.sdnelson.msc.research.lcf4j;
 
+import org.apache.log4j.Logger;
+
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class App {
 
-    public static void main( String[] args ) throws Exception {
+    final static Logger logger = Logger.getLogger(App.class);
+
+    public static void main(String[] args) throws Exception {
 
         final Properties properties = loadConfigFile();
-        new UptimeServer().startServer(8060);
-
+        final String property = properties.getProperty("lcf4j.nodes.list");
+        final List<String> stringList = Arrays.asList(property.split(","));
+        new UptimeServer().startServer(Integer.valueOf(properties.getProperty("lcf4j.server.port")));
+        logger.info("Nodes list found - " + stringList);
+        ExecutorService clientExecutor = Executors.newFixedThreadPool(stringList.size());
+        for (final String node : stringList) {
+            logger.debug("Node " + node);
+            final Runnable runnable =
+                    new UptimeClient().startClient(node.split(":")[0], Integer.valueOf(node.split(":")[1]).intValue());
+            clientExecutor.execute(runnable);
+        }
+        ;
+        logger.info("Cluster initialisation completed successfully.");
     }
 
     private static Properties loadConfigFile() {
@@ -22,12 +41,12 @@ public class App {
             String filename = "lcf4j.properties";
             input = App.class.getClassLoader().getResourceAsStream(filename);
             if(input==null){
-                System.out.println("Sorry, unable to find " + filename);
+                logger.error("Sorry, unable to find " + filename);
                 return null;
             }
 
             prop.load(input);
-            System.out.println(prop.getProperty("lcf4j.nodes.list"));
+            logger.info("Property file loaded successfully.");
 
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -36,7 +55,7 @@ public class App {
                 try {
                     input.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.error(e.getMessage());
                 }
             }
         }
