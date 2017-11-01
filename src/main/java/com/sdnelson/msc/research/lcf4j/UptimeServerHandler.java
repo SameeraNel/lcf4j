@@ -22,33 +22,12 @@ import io.netty.channel.SimpleChannelInboundHandler;
 @Sharable
 public class UptimeServerHandler extends SimpleChannelInboundHandler<Object> {
 
-
-
-//    @Override
-//    public void channelActive(ChannelHandlerContext ctx) throws Exception {
-//        printer.print(ctx.channel().remoteAddress() + " " + ctx.channel().isActive() + ctx.channel().isActive() + ctx.channel().isActive());
-//
-//    }
-//
-//    @Override
-//    public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-//       // printer.print("channelUnregistered " + ctx.channel().remoteAddress());
-//    }
-//
-//
-//    @Override
-//    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-//        printer.print("channelInactive " +ctx.channel().remoteAddress());
-//    }
-
     @Override
     public void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        // Close the connection when an exception is raised.
-//        cause.printStackTrace();
         ctx.close();
     }
 }

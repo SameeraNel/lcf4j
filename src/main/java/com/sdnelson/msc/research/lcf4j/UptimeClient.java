@@ -26,6 +26,9 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
 import org.apache.log4j.Logger;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 /**
  * Connects to a server periodically to measure and print the uptime of the
  * server.  This example demonstrates how to implement reliable reconnection
@@ -34,34 +37,38 @@ import org.apache.log4j.Logger;
 public final class UptimeClient {
 
     final static Logger logger = Logger.getLogger(UptimeClient.class);
-    static final int RECONNECT_DELAY = Integer.parseInt(System.getProperty("reconnectDelay", "1"));
-    private static final int READ_TIMEOUT = Integer.parseInt(System.getProperty("readTimeout", "1"));
-    private UptimeClientHandler handler;
-    private Bootstrap bootstrap;
-    private EventLoopGroup group;
+    static final int RECONNECT_DELAY = Integer.parseInt(System.getProperty("reconnectDelay", "5"));
+    private static final int READ_TIMEOUT = Integer.parseInt(System.getProperty("readTimeout", "3"));
+    private static UptimeClientHandler handler;
+    private static Bootstrap bootstrap;
+    private static EventLoopGroup group;
+    private ExecutorService clientExecutor;
+    private String host;
+    private int port;
 
-    public UptimeClient() {
+    public UptimeClient(int nodeCount) {
         bootstrap = new Bootstrap();
         handler = new UptimeClientHandler();
         group = new NioEventLoopGroup();
+        clientExecutor = Executors.newFixedThreadPool(nodeCount);
     }
 
-    public Runnable startClient(final String host, final int port) throws Exception {
-        return RunnableClient(host, port);
+    public void startClient(final String host, final int port) throws Exception {
+        clientExecutor.execute(RunnableClient(host, port));
     }
 
-    private Runnable RunnableClient(String host, int port) {
+    private static Runnable RunnableClient(String host, int port) {
+        logger.debug("Client node requested for " + host + ":" + port);
+        handler.setHost(host);
+        handler.setPort(port);
+        bootstrap.group(group).channel(NioSocketChannel.class).remoteAddress(host, port).handler(new ChannelInitializer<SocketChannel>() {
+            @Override protected void initChannel(SocketChannel ch) throws Exception {
+                ch.pipeline().addLast(new IdleStateHandler(READ_TIMEOUT, 0, 0), handler);
+            }
+        });
+
         Runnable runnableTask = () -> {
             try {
-                logger.debug("Client node requested for " + host + ":" + port);
-                handler.setHost(host);
-                handler.setPort(port);
-                bootstrap.group(group).channel(NioSocketChannel.class).remoteAddress(host, port).handler(new ChannelInitializer<SocketChannel>() {
-
-                    @Override protected void initChannel(SocketChannel ch) throws Exception {
-                        ch.pipeline().addLast(new IdleStateHandler(READ_TIMEOUT, 0, 0), handler);
-                    }
-                });
                 bootstrap.connect();
                 logger.info("Client started @ " + host + ":" + port);
             } finally {
@@ -71,17 +78,12 @@ public final class UptimeClient {
         return runnableTask;
     }
 
-    void connect() {
+    static void connect() {
         bootstrap.connect().addListener(new ChannelFutureListener() {
             public void operationComplete(ChannelFuture future) throws Exception {
                 synchronized (handler.errorTime ) {
                     if (future.cause() != null) {
-                        handler.startTime = -1;
-                        // handler.println("Failed to connect to : "  + HOST + ':' + PORT);
-                        if (handler.errorTime == -1) {
-                            handler.errorTime = System.currentTimeMillis();
-                        }
-                        handler.println("0");
+                        handler.println("Failed to connect to : "  +handler.getHost() + ':' + handler.getPort());
                     }
                 }
             }

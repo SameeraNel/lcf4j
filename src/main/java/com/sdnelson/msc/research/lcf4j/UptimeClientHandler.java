@@ -62,24 +62,24 @@ public class UptimeClientHandler extends SimpleChannelInboundHandler<Object> {
         IdleStateEvent e = (IdleStateEvent) evt;
         if (e.state() == IdleState.READER_IDLE) {
             // The connection was OK but there was no traffic for last period.
-         //   println("Heart beat completed.");
+            println("Heart beat completed.");
             ctx.close();
         }
     }
 
     @Override
     public void channelInactive(final ChannelHandlerContext ctx) {
-       // println("Heartbeat completed.");
+        println("Heartbeat completed.");
     }
 
     @Override
     public void channelUnregistered(final ChannelHandlerContext ctx) throws Exception {
-        //println("Sleeping for: " + UptimeClient.RECONNECT_DELAY + 's');
+        println("Sleeping for: " + UptimeClient.RECONNECT_DELAY + 's');
 
         ctx.channel().eventLoop().schedule(new Runnable() {
             public void run() {
-            //    println("Heartbeat starting...");
-                new UptimeClient().connect();
+               println("Heartbeat starting...");
+                UptimeClient.connect();
             }
         }, UptimeClient.RECONNECT_DELAY, TimeUnit.SECONDS);
     }
@@ -102,7 +102,8 @@ public class UptimeClientHandler extends SimpleChannelInboundHandler<Object> {
                                   MILLISECONDS.toHours(errorMillis) - TimeUnit.DAYS.toHours(MILLISECONDS.toDays(errorMillis)),
                                   MILLISECONDS.toMinutes(errorMillis) - TimeUnit.HOURS.toMinutes(MILLISECONDS.toHours(errorMillis)),
                                   MILLISECONDS.toSeconds(errorMillis) - TimeUnit.MINUTES.toSeconds(MILLISECONDS.toMinutes(errorMillis)),msg);
-            logger.info(formattedErrorString);
+//            logger.info(formattedErrorString);
+            logger.info("[SERVER IS DOWN] %s%n " + msg);
         } else {
             synchronized (errorTime) {
                 errorTime = -1L;
@@ -115,7 +116,8 @@ public class UptimeClientHandler extends SimpleChannelInboundHandler<Object> {
                     MILLISECONDS.toMinutes(millis) - TimeUnit.HOURS.toMinutes(MILLISECONDS.toHours(millis)),
                     MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(MILLISECONDS.toMinutes(millis)), msg);
 
-            logger.info(formattedString);
+//            logger.info(formattedString);
+            logger.info("[UPTIME: %5ds] %s%n " + msg);
         }
     }
 

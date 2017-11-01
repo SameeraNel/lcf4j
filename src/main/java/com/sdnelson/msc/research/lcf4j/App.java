@@ -7,8 +7,6 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class App {
 
@@ -18,18 +16,21 @@ public class App {
 
         final Properties properties = loadConfigFile();
         final String property = properties.getProperty("lcf4j.nodes.list");
-        final List<String> stringList = Arrays.asList(property.split(","));
+        final List<String> nodeList = Arrays.asList(property.split(","));
         new UptimeServer().startServer(Integer.valueOf(properties.getProperty("lcf4j.server.port")));
-        logger.info("Nodes list found - " + stringList);
-        ExecutorService clientExecutor = Executors.newFixedThreadPool(stringList.size());
-        for (final String node : stringList) {
-            logger.debug("Node " + node);
-            final Runnable runnable =
-                    new UptimeClient().startClient(node.split(":")[0], Integer.valueOf(node.split(":")[1]).intValue());
-            clientExecutor.execute(runnable);
-        }
-        ;
-        logger.info("Cluster initialisation completed successfully.");
+
+        logger.info("Nodes list found - " + nodeList);
+
+        new Client().connectClient();
+//        new Client().connectClient();
+//        for (String node : nodeList) {
+//            node = node.trim();
+//            logger.info("Node " + node);
+//            new UptimeClient(nodeList.size()).startClient(node.split(":")[0].trim(),
+//                                                          Integer.valueOf(node.split(":")[1].trim()).intValue());
+//        }
+        logger.info("ok.");
+
     }
 
     private static Properties loadConfigFile() {

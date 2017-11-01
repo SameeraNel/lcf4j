@@ -33,6 +33,7 @@ public final class UptimeServer {
 
     final static Logger logger = Logger.getLogger(UptimeServer.class);
     private UptimeServerHandler handler;
+    static ExecutorService serverListener = Executors.newFixedThreadPool(1);
 
     public UptimeServer() {
         handler = new UptimeServerHandler();
@@ -40,37 +41,36 @@ public final class UptimeServer {
 
     public void startServer(int port) throws Exception {
         EventLoopGroup bossGroup = new NioEventLoopGroup(2);
-        EventLoopGroup workerGroup = new NioEventLoopGroup();
-        final Runnable runnableServer = RunnableServer(port, bossGroup, workerGroup);
-        ExecutorService executor = Executors.newFixedThreadPool(2);
-        executor.execute(runnableServer);
-    }
+        EventLoopGroup workerGroup = new NioEventLoopGroup(10);
+        Runnable listeningTask = () -> {
+        try {
+            ServerBootstrap bootstrap = new ServerBootstrap();
+            bootstrap.group(bossGroup, workerGroup)
+                     .channel(NioServerSocketChannel.class)
+                     .handler(new LoggingHandler(LogLevel.INFO))
+                     .childHandler(new ChannelInitializer<SocketChannel>() {
 
-    private Runnable RunnableServer(int port, EventLoopGroup bossGroup, EventLoopGroup workerGroup) {
-        Runnable runnableTask = () -> {
-            try {
-                ServerBootstrap bootstrap = new ServerBootstrap();
-                bootstrap.group(bossGroup, workerGroup)
-                         .channel(NioServerSocketChannel.class)
-                         .handler(new LoggingHandler(LogLevel.INFO))
-                         .childHandler(new ChannelInitializer<SocketChannel>() {
+                         @Override public void initChannel(SocketChannel ch) {
+                             ch.pipeline().addLast(handler);
+                         }
+                     });
+            ChannelFuture channelFuture = bootstrap.bind(port).sync();
+            logger.info("Server started @ localhost =" + ":" + port);
 
-                             @Override public void initChannel(SocketChannel ch) {
-                                 ch.pipeline().addLast(handler);
-                             }
-                         });
-
-                // Bind and start to accept incoming connections.
-                ChannelFuture channelFuture = bootstrap.bind(port).sync();
-                logger.info("Server started @ localhost" + ":" + port);
-                channelFuture.channel().closeFuture().sync();
-            } catch (InterruptedException e) {
-                logger.error(e.getMessage());
-            } finally {
-                workerGroup.shutdownGracefully();
-                bossGroup.shutdownGracefully();
-            }
+                try {
+                    logger.info("Server listening for client requests");
+                    channelFuture.channel().closeFuture().sync();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            logger.info("Server waiting for client requests");
+        } catch (InterruptedException e) {
+            logger.error(e.getMessage());
+        } finally {
+            workerGroup.shutdownGracefully();
+            bossGroup.shutdownGracefully();
+        }
         };
-        return runnableTask;
+        serverListener.execute(listeningTask);
     }
 }
