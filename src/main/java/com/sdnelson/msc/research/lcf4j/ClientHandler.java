@@ -18,15 +18,19 @@ import java.util.concurrent.TimeUnit;
 public class ClientHandler extends SimpleChannelInboundHandler<Object> {
 
     final static Logger logger = Logger.getLogger(ClientHandler.class);
-
     long startTime = -1;
+    private Client clientRef;
+
+    public ClientHandler(Client client) {
+        clientRef = client;
+    }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         if (startTime < 0) {
             startTime = System.currentTimeMillis();
         }
-        println("Connected to: " + ctx.channel().remoteAddress());
+        println("[ " +ctx.channel().remoteAddress() + " ]");
     }
 
     @Override
@@ -43,25 +47,25 @@ public class ClientHandler extends SimpleChannelInboundHandler<Object> {
         IdleStateEvent e = (IdleStateEvent) evt;
         if (e.state() == IdleState.READER_IDLE) {
             // The connection was OK but there was no traffic for last period.
-            println("Disconnecting due to no inbound traffic");
+          //  println("Disconnecting due to no inbound traffic");
             ctx.close();
         }
     }
 
     @Override
     public void channelInactive(final ChannelHandlerContext ctx) {
-        println("Disconnected from: " + ctx.channel().remoteAddress());
+      //  println("Disconnected from: " + ctx.channel().remoteAddress());
     }
 
     @Override
     public void channelUnregistered(final ChannelHandlerContext ctx) throws Exception {
-        println("Sleeping for: " + Client.RECONNECT_DELAY + 's');
+      //  println("Sleeping for: " + Client.RECONNECT_DELAY + 's');
 
         ctx.channel().eventLoop().schedule(new Runnable() {
             @Override
             public void run() {
-                println("Reconnecting to: " + Client.HOST + ':' + Client.PORT);
-                Client.connect();
+              //  println("Reconnecting to: " + Client.HOST + ':' + Client.PORT);
+                clientRef.connect();
             }
         }, Client.RECONNECT_DELAY, TimeUnit.SECONDS);
     }
@@ -74,9 +78,9 @@ public class ClientHandler extends SimpleChannelInboundHandler<Object> {
 
     void println(String msg) {
         if (startTime < 0) {
-            logger.info("[ DOWNTIME ] " +  msg);
+            logger.info(msg + "[ DOWNTIME ] ");
         } else {
-            logger.info("[ UPTIME ] " + msg);
+            logger.info(msg + "[ UPTIME ] " );
         }
     }
 }

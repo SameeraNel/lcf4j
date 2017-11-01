@@ -21,36 +21,34 @@ import org.apache.log4j.Logger;
  */
 public final class Client {
 
-    final static Logger logger = Logger.getLogger(App.class);
-
-    static final String HOST = System.getProperty("host", "127.0.0.1");
-    static final int PORT = Integer.parseInt(System.getProperty("port", "8010"));
+    final static Logger logger = Logger.getLogger(Client.class);
     // Sleep 5 seconds before a reconnection attempt.
     static final int RECONNECT_DELAY = Integer.parseInt(System.getProperty("reconnectDelay", "1"));
     // Reconnect when the server sends nothing for 10 seconds.
-    private static final int READ_TIMEOUT = Integer.parseInt(System.getProperty("readTimeout", "1"));
+    private final int READ_TIMEOUT = Integer.parseInt(System.getProperty("readTimeout", "1"));
+    private ClientHandler handler;
+    private Bootstrap bootstrap;
+    private static EventLoopGroup group = new NioEventLoopGroup(1);
 
-    private static final ClientHandler handler = new ClientHandler();
-    private static final Bootstrap bs = new Bootstrap();
-
-
-    public void connectClient(){
-        EventLoopGroup group = new NioEventLoopGroup();
-        bs.group(group)
-          .channel(NioSocketChannel.class)
-          .remoteAddress(HOST, PORT)
-          .handler(new ChannelInitializer<SocketChannel>() {
+    public Client(String host, int port) {
+        handler = new ClientHandler(this);
+        bootstrap = new Bootstrap();
+        handler = new ClientHandler(this);
+        bootstrap.group(group)
+                 .remoteAddress(host, port)
+                 .channel(NioSocketChannel.class)
+                 .handler(new ChannelInitializer<SocketChannel>() {
               @Override
               protected void initChannel(SocketChannel ch) throws Exception {
                   ch.pipeline().addLast(new IdleStateHandler(READ_TIMEOUT, 0, 0), handler);
               }
           });
-        bs.connect();
-        logger.info("Client started @ " + HOST + ":" + PORT);
+        bootstrap.connect();
+        logger.info("Client started @ " + host + ":" + port);
     }
 
-    static void connect() {
-        bs.connect().addListener(new ChannelFutureListener() {
+    void connect() {
+        bootstrap.connect().addListener(new ChannelFutureListener() {
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
                 if (future.cause() != null) {

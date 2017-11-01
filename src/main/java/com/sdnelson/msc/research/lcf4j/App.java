@@ -20,15 +20,12 @@ public class App {
         new UptimeServer().startServer(Integer.valueOf(properties.getProperty("lcf4j.server.port")));
 
         logger.info("Nodes list found - " + nodeList);
-
-        new Client().connectClient();
-//        new Client().connectClient();
-//        for (String node : nodeList) {
-//            node = node.trim();
-//            logger.info("Node " + node);
-//            new UptimeClient(nodeList.size()).startClient(node.split(":")[0].trim(),
-//                                                          Integer.valueOf(node.split(":")[1].trim()).intValue());
-//        }
+        for (String node : nodeList) {
+            node = node.trim();
+            logger.info("Node " + node);
+            new Client(
+                    node.split(":")[0].trim(), Integer.valueOf(node.split(":")[1].trim()).intValue());
+        }
         logger.info("ok.");
 
     }
