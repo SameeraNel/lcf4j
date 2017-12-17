@@ -26,6 +26,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
       <junit.version>3.8.1</junit.version>
       <netty.version>5.0.0.Alpha2</netty.version>
+      <ignite.version>2.3.0</ignite.version>
   </properties>
 
   <dependencies>
