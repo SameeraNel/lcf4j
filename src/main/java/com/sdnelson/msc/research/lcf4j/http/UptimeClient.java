@@ -53,6 +53,10 @@ public final class UptimeClient {
         clientExecutor = Executors.newFixedThreadPool(nodeCount);
     }
 
+    public static void main(String[] args) throws Exception {
+        new UptimeClient(36).startClient("localhost", 8080);
+    }
+
     public void startClient(final String host, final int port) throws Exception {
         clientExecutor.execute(RunnableClient(host, port));
     }

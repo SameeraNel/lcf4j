@@ -15,6 +15,10 @@
  */
 package com.sdnelson.msc.research.lcf4j.websocksts.server;
 
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.util.Collection;
+import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -40,9 +44,18 @@ public class WebSocketFrameHandler extends SimpleChannelInboundHandler<WebSocket
         if (frame instanceof TextWebSocketFrame) {
             // Send the uppercase string back.
             String request = ((TextWebSocketFrame) frame).text();
+            logger.info("WebSocket Client Received Message: " +  request);
+            Collection<NodeData> activeNodeDataList = NodeRegistry.getActiveNodeDataList();
 
-            logger.info("{" + ctx.channel() + "} received {" +  request + "}");
-            ctx.channel().writeAndFlush(new TextWebSocketFrame(request.toUpperCase(Locale.US)));
+            String hashtext = "";
+            for (NodeData dataList : activeNodeDataList) {
+                MessageDigest md = MessageDigest.getInstance("MD5");
+                byte[] messageDigest = md.digest(dataList.toString().getBytes());
+                BigInteger number = new BigInteger(1, messageDigest);
+                hashtext += number.toString(16);
+            }
+            ctx.channel().writeAndFlush(new TextWebSocketFrame("NodeData Hash : " + hashtext + ":" +" Node Count : " + NodeRegistry.getActiveNodeCount()));
+
         } else {
             String message = "unsupported frame type: " + frame.getClass().getName();
             throw new UnsupportedOperationException(message);

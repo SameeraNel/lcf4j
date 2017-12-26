@@ -42,7 +42,7 @@ public final class WebSocketServer {
     public static void main(String[] args) throws Exception {
 
         final Properties properties = loadConfigFile();
-        final String hostName = properties.getProperty("lcf4j.nodes.host");
+        final String hostName = properties.getProperty("lcf4j.server.host");
         // Configure SSL.
         final SslContext sslCtx;
         if (SSL) {
@@ -52,8 +52,10 @@ public final class WebSocketServer {
             sslCtx = null;
         }
 
-        EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-        EventLoopGroup workerGroup = new NioEventLoopGroup();
+        logger.info(properties.getProperty("server.master.threadpool.size"));
+        logger.info(properties.getProperty("server.slave.threadpool.size"));
+        EventLoopGroup bossGroup = new NioEventLoopGroup(Integer.parseInt(properties.getProperty("server.master.threadpool.size")));
+        EventLoopGroup workerGroup = new NioEventLoopGroup(Integer.parseInt(properties.getProperty("server.slave.threadpool.size")));
         try {
             ServerBootstrap b = new ServerBootstrap();
             b.group(bossGroup, workerGroup)
