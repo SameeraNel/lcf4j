@@ -13,10 +13,10 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-package com.sdnelson.msc.research.lcf4j.websocksts.server;
+package com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.server;
 
-import com.sdnelson.msc.research.lcf4j.websocksts.core.NodeData;
-import com.sdnelson.msc.research.lcf4j.websocksts.core.NodeRegistry;
+import com.sdnelson.msc.research.lcf4j.core.NodeData;
+import com.sdnelson.msc.research.lcf4j.core.NodeRegistry;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;

@@ -1,10 +1,9 @@
-package com.sdnelson.msc.research.lcf4j.http;
+package com.sdnelson.msc.research.lcf4j.reference.http;
 
 /**
  * Created by sn40157 on 11/1/17.
  */
-import com.sdnelson.msc.research.lcf4j.websocksts.core.NodeData;
-import com.sdnelson.msc.research.lcf4j.websocksts.core.NodeRegistry;
+import com.sdnelson.msc.research.lcf4j.core.NodeRegistry;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -14,15 +13,8 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.handler.timeout.IdleStateHandler;
 import org.apache.log4j.Logger;
-
-import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Collection;
-import java.util.Date;
 
 /**
  * Connects to a server periodically to measure and print the uptime of the

@@ -1,8 +1,8 @@
-package com.sdnelson.msc.research.lcf4j.http;
+package com.sdnelson.msc.research.lcf4j.reference.http;
 
 
-import com.sdnelson.msc.research.lcf4j.websocksts.core.NodeData;
-import com.sdnelson.msc.research.lcf4j.websocksts.core.NodeRegistry;
+import com.sdnelson.msc.research.lcf4j.core.NodeData;
+import com.sdnelson.msc.research.lcf4j.core.NodeRegistry;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;

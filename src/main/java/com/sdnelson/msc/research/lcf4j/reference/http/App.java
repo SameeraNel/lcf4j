@@ -1,4 +1,4 @@
-package com.sdnelson.msc.research.lcf4j.http;
+package com.sdnelson.msc.research.lcf4j.reference.http;
 
 import org.apache.log4j.Logger;
 

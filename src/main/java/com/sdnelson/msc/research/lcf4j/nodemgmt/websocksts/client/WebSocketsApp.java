@@ -1,12 +1,7 @@
-package com.sdnelson.msc.research.lcf4j.websocksts.client;
+package com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.client;
 
-import com.sdnelson.msc.research.lcf4j.websocksts.client.WebSocketClient;
-import io.netty.util.concurrent.ThreadPerTaskExecutor;
-
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 
 public class WebSocketsApp {
 

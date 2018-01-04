@@ -1,4 +1,4 @@
-package com.sdnelson.msc.research.lcf4j.websocksts.core;
+package com.sdnelson.msc.research.lcf4j.core;
 
 import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;

@@ -13,13 +13,12 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-package com.sdnelson.msc.research.lcf4j.websocksts.client;
+package com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.client;
 
-import com.sdnelson.msc.research.lcf4j.websocksts.core.NodeData;
-import com.sdnelson.msc.research.lcf4j.websocksts.core.NodeRegistry;
-import com.sdnelson.msc.research.lcf4j.websocksts.server.WebSocketServer;
+import com.sdnelson.msc.research.lcf4j.core.NodeData;
+import com.sdnelson.msc.research.lcf4j.core.NodeRegistry;
+import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.server.WebSocketServer;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
@@ -27,11 +26,8 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http.HttpObjectAggregator;
-import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketClientHandshakerFactory;
-import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketVersion;
 import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketClientCompressionHandler;
 import io.netty.handler.ssl.SslContext;
@@ -47,7 +43,6 @@ import java.math.BigInteger;
 import java.net.URI;
 import java.security.MessageDigest;
 import java.util.Collection;
-import java.util.Date;
 import java.util.Properties;
 
 /**
@@ -55,7 +50,7 @@ import java.util.Properties;
  * <p>
  * In order to run this example you need a compatible WebSocket server.
  * Therefore you can either start the WebSocket server from the examples
- * by running {@link com.sdnelson.msc.research.lcf4j.websocksts.server.WebSocketServer}
+ * by running {@link com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.server.WebSocketServer}
  * or connect to an existing WebSocket server such as
  * <a href="http://www.websocket.org/echo.html">ws://echo.websocket.org</a>.
  * <p>

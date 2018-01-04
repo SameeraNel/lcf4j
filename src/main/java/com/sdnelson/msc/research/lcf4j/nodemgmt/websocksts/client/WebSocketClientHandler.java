@@ -35,7 +35,7 @@
 //OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //THE SOFTWARE.
 
-package com.sdnelson.msc.research.lcf4j.websocksts.client;
+package com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.client;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;

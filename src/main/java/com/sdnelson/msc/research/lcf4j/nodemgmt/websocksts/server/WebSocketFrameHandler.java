@@ -13,17 +13,14 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-package com.sdnelson.msc.research.lcf4j.websocksts.server;
+package com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.server;
 
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.util.Collection;
-import java.util.Date;
-import java.util.Locale;
-import java.util.concurrent.ConcurrentHashMap;
 
-import com.sdnelson.msc.research.lcf4j.websocksts.core.NodeData;
-import com.sdnelson.msc.research.lcf4j.websocksts.core.NodeRegistry;
+import com.sdnelson.msc.research.lcf4j.core.NodeData;
+import com.sdnelson.msc.research.lcf4j.core.NodeRegistry;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
