@@ -15,6 +15,7 @@
  */
 package com.sdnelson.msc.research.lcf4j.http;
 
+import com.sdnelson.msc.research.lcf4j.reference.http.UptimeServerHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;

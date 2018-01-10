@@ -34,7 +34,7 @@ public final class Client {
     String  clientHost;
     int clientPort;
 
-    public Client(String host, int port) {
+    public Client(String host, int port) throws InterruptedException {
         handler = new ClientHandler(this);
         bootstrap = new Bootstrap();
         bootstrap.group(group)
@@ -65,8 +65,9 @@ public final class Client {
 //                BigInteger number = new BigInteger(1, messageDigest);
 //                hashtext += number.toString(16);
 //            }
-            channelFuture.channel().writeAndFlush(new TextWebSocketFrame("NodeData Hash : " + hashtext + ":" +" Node Count : " + NodeRegistry.getActiveNodeCount()));                Thread.sleep(1000);
-            }
+            channelFuture.channel().writeAndFlush(new TextWebSocketFrame("NodeData Hash : " + hashtext + ":" +" Node Count : " + NodeRegistry.getActiveNodeCount()));
+            Thread.sleep(1000);
+        }
     }
 
     void connect() {

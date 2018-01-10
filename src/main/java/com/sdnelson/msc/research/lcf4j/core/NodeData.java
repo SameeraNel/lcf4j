@@ -1,11 +1,12 @@
 package com.sdnelson.msc.research.lcf4j.core;
 
+import java.io.Serializable;
 import java.util.Calendar;
 
 /**
  * Created by SDN on 12/17/2017.
  */
-public class NodeData {
+public class NodeData implements Serializable {
 
     private String nodeHexaId;
     private String nodeName;
@@ -72,8 +73,11 @@ public class NodeData {
     @Override
     public String toString() {
         return "NodeData{" +
-                "remoteAddress='" + remoteAddress + '\'' +
+                "nodeHexaId='" + nodeHexaId + '\'' +
+                ", nodeName='" + nodeName + '\'' +
+                ", remoteAddress='" + remoteAddress + '\'' +
                 ", registeredTime=" + registeredTime.getTime() +
+                ", status=" + status +
                 '}';
     }
 }

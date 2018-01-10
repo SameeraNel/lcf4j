@@ -17,6 +17,11 @@ public class NodeRegistry {
         activeNodeMap.put(nodeData.getNodeHexaId(), nodeData);
         return nodeData;
     }
+
+    public static boolean contains(NodeData nodeData){
+        return activeNodeMap.containsKey(nodeData.getNodeHexaId());
+    }
+
     public static NodeData getActiveNodeData(String key){
         return activeNodeMap.get(key);
     }
@@ -52,4 +57,6 @@ public class NodeRegistry {
     public static int getGlobalNodeCount(){
         return globalNodeMap.size();
     }
+
+
 }

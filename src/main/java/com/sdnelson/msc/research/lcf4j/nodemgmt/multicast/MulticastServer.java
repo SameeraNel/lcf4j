@@ -9,6 +9,9 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.InternetProtocolFamily;
 import io.netty.channel.socket.nio.NioDatagramChannel;
+import io.netty.handler.codec.Delimiters;
+import io.netty.handler.codec.string.StringDecoder;
+import io.netty.handler.codec.string.StringEncoder;
 import org.apache.log4j.Logger;
 
 import java.net.Inet4Address;
@@ -31,7 +34,8 @@ public class MulticastServer extends Thread {
     public void run() {
         EventLoopGroup group = new NioEventLoopGroup();
         try {
-            NetworkInterface ni = NetworkInterface.getByName("eth0");
+            final NetworkInterface networkInterface = NetworkInterface.getNetworkInterfaces().nextElement();
+            NetworkInterface ni = NetworkInterface.getByName(networkInterface.getName());
             Enumeration<InetAddress> addresses = ni.getInetAddresses();
             InetAddress localAddress = null;
             while (addresses.hasMoreElements()) {
@@ -53,6 +57,7 @@ public class MulticastServer extends Thread {
                     .localAddress(localAddress, groupAddress.getPort())
                     .option(ChannelOption.IP_MULTICAST_IF, ni)
                     .option(ChannelOption.SO_REUSEADDR, true)
+                    .option(ChannelOption.IP_MULTICAST_LOOP_DISABLED, true)
                     .handler(new ChannelInitializer<NioDatagramChannel>() {
                         @Override
                         public void initChannel(NioDatagramChannel ch) throws Exception {
@@ -64,7 +69,6 @@ public class MulticastServer extends Thread {
             ChannelFuture channelFuture = ch.joinGroup(groupAddress, ni).sync();
             logger.info(channelFuture.channel().localAddress());
             ch.closeFuture().await();
-
 
         } catch (InterruptedException e) {
             e.printStackTrace();
