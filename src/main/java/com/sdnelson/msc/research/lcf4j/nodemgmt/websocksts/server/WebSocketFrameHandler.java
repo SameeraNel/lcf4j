@@ -13,13 +13,14 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-package com.sdnelson.msc.research.lcf4j.websocksts.server;
+package com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.server;
 
-import java.util.Locale;
-import java.util.concurrent.ConcurrentHashMap;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.util.Collection;
 
-import com.sdnelson.msc.research.lcf4j.websocksts.core.NodeData;
-import com.sdnelson.msc.research.lcf4j.websocksts.core.NodeRegistry;
+import com.sdnelson.msc.research.lcf4j.core.NodeData;
+import com.sdnelson.msc.research.lcf4j.core.NodeRegistry;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
@@ -40,9 +41,18 @@ public class WebSocketFrameHandler extends SimpleChannelInboundHandler<WebSocket
         if (frame instanceof TextWebSocketFrame) {
             // Send the uppercase string back.
             String request = ((TextWebSocketFrame) frame).text();
+            logger.info("WebSocket Client Received Message: " +  request);
+            Collection<NodeData> activeNodeDataList = NodeRegistry.getActiveNodeDataList();
 
-            logger.info("{" + ctx.channel() + "} received {" +  request + "}");
-            ctx.channel().writeAndFlush(new TextWebSocketFrame(request.toUpperCase(Locale.US)));
+            String hashtext = "";
+            for (NodeData dataList : activeNodeDataList) {
+                MessageDigest md = MessageDigest.getInstance("MD5");
+                byte[] messageDigest = md.digest(dataList.toString().getBytes());
+                BigInteger number = new BigInteger(1, messageDigest);
+                hashtext += number.toString(16);
+            }
+            ctx.channel().writeAndFlush(new TextWebSocketFrame("NodeData Hash : " + hashtext + ":" +" Node Count : " + NodeRegistry.getActiveNodeCount()));
+
         } else {
             String message = "unsupported frame type: " + frame.getClass().getName();
             throw new UnsupportedOperationException(message);

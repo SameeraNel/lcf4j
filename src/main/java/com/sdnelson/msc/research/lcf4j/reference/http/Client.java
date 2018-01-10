@@ -1,8 +1,9 @@
-package com.sdnelson.msc.research.lcf4j.http;
+package com.sdnelson.msc.research.lcf4j.reference.http;
 
 /**
  * Created by sn40157 on 11/1/17.
  */
+import com.sdnelson.msc.research.lcf4j.core.NodeRegistry;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -11,6 +12,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.timeout.IdleStateHandler;
 import org.apache.log4j.Logger;
 
@@ -23,7 +25,7 @@ public final class Client {
 
     final static Logger logger = Logger.getLogger(Client.class);
     // Sleep 5 seconds before a reconnection attempt.
-    static final int RECONNECT_DELAY = Integer.parseInt(System.getProperty("reconnectDelay", "20"));
+    static final int RECONNECT_DELAY = Integer.parseInt(System.getProperty("reconnectDelay", "0"));
     // Reconnect when the server sends nothing for 10 seconds.
     private final int READ_TIMEOUT = Integer.parseInt(System.getProperty("readTimeout", "1"));
     private ClientHandler handler;
@@ -32,10 +34,14 @@ public final class Client {
     String  clientHost;
     int clientPort;
 
-    public Client(String host, int port) {
+    public static void main(String[] args) throws Exception {
+        new Client("sdnelson-mobl-vm1", 8080);
+    }
+
+
+    public Client(String host, int port) throws InterruptedException {
         handler = new ClientHandler(this);
         bootstrap = new Bootstrap();
-        handler = new ClientHandler(this);
         bootstrap.group(group)
                  .remoteAddress(host, port)
                  .channel(NioSocketChannel.class)
@@ -45,10 +51,27 @@ public final class Client {
                   ch.pipeline().addLast(new IdleStateHandler(READ_TIMEOUT, 0, 0), handler);
               }
           });
-        bootstrap.connect();
+        ChannelFuture channelFuture = bootstrap.connect();
+
         clientHost = host;
         clientPort = port;
-        logger.error("Client started @ " + host + ":" + port);
+        logger.info("Client started @ " + host + ":" + port);
+        while(true){
+//            Collection<NodeData> activeNodeDataList = NodeRegistry.getActiveNodeDataList();
+              String hashtext = "";
+//            for (NodeData dataList : activeNodeDataList) {
+//                MessageDigest md = null;
+//                try {
+//                    md = MessageDigest.getInstance("MD5");
+//                } catch (NoSuchAlgorithmException e) {
+//                    e.printStackTrace();
+//                }
+//                byte[] messageDigest = md.digest(dataList.toString().getBytes());
+//                BigInteger number = new BigInteger(1, messageDigest);
+//                hashtext += number.toString(16);
+//            }
+            channelFuture.channel().writeAndFlush(new TextWebSocketFrame("NodeData Hash : " + hashtext + ":" +" Node Count : " + NodeRegistry.getActiveNodeCount()));                Thread.sleep(1000);
+            }
     }
 
     void connect() {

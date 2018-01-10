@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-package com.sdnelson.msc.research.lcf4j.http;
+package com.sdnelson.msc.research.lcf4j.reference.http;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
@@ -51,6 +51,10 @@ public final class UptimeClient {
         handler = new UptimeClientHandler();
         group = new NioEventLoopGroup();
         clientExecutor = Executors.newFixedThreadPool(nodeCount);
+    }
+
+    public static void main(String[] args) throws Exception {
+        new UptimeClient(36).startClient("localhost", 8080);
     }
 
     public void startClient(final String host, final int port) throws Exception {

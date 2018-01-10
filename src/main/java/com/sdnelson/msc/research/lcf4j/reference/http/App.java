@@ -1,4 +1,4 @@
-package com.sdnelson.msc.research.lcf4j.http;
+package com.sdnelson.msc.research.lcf4j.reference.http;
 
 import org.apache.log4j.Logger;
 
@@ -19,17 +19,21 @@ public class App {
         final List<String> nodeList = Arrays.asList(property.split(","));
        // new UptimeServer().startServer(Integer.valueOf(properties.getProperty("lcf4j.server.port")));
 
-        for (int i = 1; i < 11 ; i++) {
-            new UptimeServer().startServer(8000 + i*10);
+//        for (int i = 1; i < 1 ; i++) {
+//            new UptimeServer().startServer(8080 );
+//        }
+
+        for (int i = 1; i < 3; i++) {
+            new Client("localhost", 8080);
         }
 
-        logger.info("Nodes list found - " + nodeList);
-        for (String node : nodeList) {
-            node = node.trim();
-            logger.info("Node " + node);
-            new Client(
-                    node.split(":")[0].trim(), Integer.valueOf(node.split(":")[1].trim()).intValue());
-        }
+//        logger.info("Nodes list found - " + nodeList);
+//        for (String node : nodeList) {
+//            node = node.trim();
+//            logger.info("Node " + node);
+//            new Client(
+//                    node.split(":")[0].trim(), Integer.valueOf(node.split(":")[1].trim()).intValue());
+//        }
         logger.info("ok.");
 
     }

@@ -35,7 +35,7 @@
 //OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //THE SOFTWARE.
 
-package com.sdnelson.msc.research.lcf4j.websocksts.client;
+package com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.client;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -119,11 +119,11 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         WebSocketFrame frame = (WebSocketFrame) msg;
         if (frame instanceof TextWebSocketFrame) {
             TextWebSocketFrame textFrame = (TextWebSocketFrame) frame;
-            System.out.println("WebSocket Client received message: " + textFrame.text());
+            logger.info("WebSocket Client Received Message: " + textFrame.text());
         } else if (frame instanceof PongWebSocketFrame) {
-            System.out.println("WebSocket Client received pong");
+            logger.info("WebSocket Client received pong");
         } else if (frame instanceof CloseWebSocketFrame) {
-            System.out.println("WebSocket Client received closing");
+            logger.info("WebSocket Client received closing");
             ch.close();
         }
     }

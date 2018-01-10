@@ -1,13 +1,21 @@
-package com.sdnelson.msc.research.lcf4j.http;
+package com.sdnelson.msc.research.lcf4j.reference.http;
 
 
+import com.sdnelson.msc.research.lcf4j.core.NodeData;
+import com.sdnelson.msc.research.lcf4j.core.NodeRegistry;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import org.apache.log4j.Logger;
 
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Collection;
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -30,12 +38,31 @@ public class ClientHandler extends SimpleChannelInboundHandler<Object> {
         if (startTime < 0) {
             startTime = System.currentTimeMillis();
         }
-        println("[ " +ctx.channel().remoteAddress() + " ]");
+        println("[ " +ctx.channel().remoteAddress() + " ]");Collection<NodeData> activeNodeDataList = NodeRegistry.getActiveNodeDataList();
+        String hashtext = "";
+        for (NodeData dataList : activeNodeDataList) {
+            MessageDigest md = null;
+            try {
+                md = MessageDigest.getInstance("MD5");
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            }
+            byte[] messageDigest = md.digest(dataList.toString().getBytes());
+            BigInteger number = new BigInteger(1, messageDigest);
+            hashtext += number.toString(16);
+        }
+        ctx.channel().writeAndFlush(new TextWebSocketFrame("NodeData Hash : " + hashtext + ":" +" Node Count : " + NodeRegistry.getActiveNodeCount()));
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
-        // Discard received data
+        logger.info("{" + ctx.channel() + "} received {" +  msg + "}");
+        ctx.channel().writeAndFlush("Time : " + new Date() + ":" +"Node Count : " + NodeRegistry.getActiveNodeCount());
     }
 
     @Override
@@ -78,9 +105,9 @@ public class ClientHandler extends SimpleChannelInboundHandler<Object> {
 
     void println(String msg) {
         if (startTime < 0) {
-            logger.error("[" + clientRef.clientHost + ":" + clientRef.clientPort  + "] "+ " [ DOWNTIME ] ");
+            logger.info("[" + clientRef.clientHost + ":" + clientRef.clientPort  + "] "+ " [ DOWNTIME ] ");
         } else {
-            logger.error("[" + clientRef.clientHost + ":" + clientRef.clientPort  + "] "+ " [ UPTIME ] " );
+            logger.info("[" + clientRef.clientHost + ":" + clientRef.clientPort  + "] "+ " [ UPTIME ] " );
         }
     }
 }
