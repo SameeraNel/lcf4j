@@ -34,12 +34,7 @@ public final class Client {
     String  clientHost;
     int clientPort;
 
-    public static void main(String[] args) throws Exception {
-        new Client("sdnelson-mobl-vm1", 8080);
-    }
-
-
-    public Client(String host, int port) throws InterruptedException {
+    public Client(String host, int port) {
         handler = new ClientHandler(this);
         bootstrap = new Bootstrap();
         bootstrap.group(group)

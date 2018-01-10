@@ -18,6 +18,7 @@ package com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.client;
 import com.sdnelson.msc.research.lcf4j.core.NodeData;
 import com.sdnelson.msc.research.lcf4j.core.NodeRegistry;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.server.WebSocketServer;
+import com.sdnelson.msc.research.lcf4j.websocksts.server.WebSocketServer;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -41,6 +42,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigInteger;
 import java.net.URI;
+import java.util.Properties;
 import java.security.MessageDigest;
 import java.util.Collection;
 import java.util.Properties;
@@ -61,12 +63,18 @@ import java.util.Properties;
 public final class WebSocketClient {
 
     final static org.apache.log4j.Logger logger = Logger.getLogger(WebSocketServer.class);
+    final static org.apache.log4j.Logger logger = Logger.getLogger(WebSocketClient.class);
     static final String URL = System.getProperty("url", "ws://127.0.0.1:8080/websocket");
 
     public static void main(String[] args) throws Exception {
         new WebSocketClient().startClient();
     }
     public void startClient() throws Exception {
+        final Properties properties = loadConfigFile();
+        new WebSocketClient().runClient();
+    }
+    public  void runClient() throws Exception {
+        logger.info("Client is starting ...");
         final Properties properties = loadConfigFile();
         URI uri = new URI(URL);
         String scheme = uri.getScheme() == null? "ws" : uri.getScheme();
@@ -98,6 +106,8 @@ public final class WebSocketClient {
             sslCtx = null;
         }
 
+        EventLoopGroup group = new NioEventLoopGroup(Integer.valueOf(
+                properties.getProperty("client.salve.threadpool.size")));
         logger.info(properties.getProperty("client.slave.threadpool.size"));
         EventLoopGroup group = new NioEventLoopGroup(Integer.parseInt(properties.getProperty("client.slave.threadpool.size")));
         ChannelFuture sync;
@@ -127,10 +137,17 @@ public final class WebSocketClient {
                              handler);
                  }
              });
-
+            logger.info("Client boot sequence initiated.");
             Channel ch = b.connect(uri.getHost(), port).sync().channel();
+            logger.info("Client boot sequence completed.");
+
+            handler.handshakeFuture().sync();
             sync = handler.handshakeFuture().sync();
 
+            while (true) {
+                WebSocketFrame frame = new TextWebSocketFrame(ch.localAddress().toString());
+                ch.writeAndFlush(frame);
+                Thread.sleep(1000);
             BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
 
 
@@ -146,6 +163,27 @@ public final class WebSocketClient {
                 ch.writeAndFlush(new TextWebSocketFrame("NodeData Hash : " + hashtext + ":" +" Node Count : " + NodeRegistry.getActiveNodeCount()));
                 Thread.sleep(1000);
             }
+
+
+//            BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
+//            while (true) {
+//                String msg = console.readLine();
+//                if (msg == null) {
+//                    break;
+//                } else if ("bye".equals(msg.toLowerCase())) {
+//                    logger.info("Client disconnect initiated.");
+//                    ch.writeAndFlush(new CloseWebSocketFrame());
+//                    ch.closeFuture().sync();
+//                    break;
+//                } else if ("ping".equals(msg.toLowerCase())) {
+//                    WebSocketFrame frame = new PingWebSocketFrame(Unpooled.wrappedBuffer(new byte[] { 8, 1, 8, 1 }));
+//                    ch.writeAndFlush(frame);
+//                } else {
+//                    logger.info("Message Sent.");
+//                    WebSocketFrame frame = new TextWebSocketFrame(msg);
+//                    ch.writeAndFlush(frame);
+//                }
+//            }
 
 //            while (true) {
 //                String msg = console.readLine();
@@ -170,6 +208,36 @@ public final class WebSocketClient {
         }
 
 
+    }
+
+    private static Properties loadConfigFile() {
+        Properties prop = new Properties();
+        InputStream input = null;
+
+        try {
+
+            String filename = "lcf4j.properties";
+            input = WebSocketServer.class.getClassLoader().getResourceAsStream(filename);
+            if(input==null){
+                logger.error("Sorry, unable to find " + filename);
+                return null;
+            }
+
+            prop.load(input);
+            logger.info("Property file loaded successfully.");
+
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        } finally{
+            if(input!=null){
+                try {
+                    input.close();
+                } catch (IOException e) {
+                    logger.error(e.getMessage());
+                }
+            }
+        }
+        return prop;
     }
 
     private static Properties loadConfigFile() {

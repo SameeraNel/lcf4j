@@ -18,6 +18,9 @@ package com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.server;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.util.Collection;
+import java.util.Date;
+import java.util.Locale;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.sdnelson.msc.research.lcf4j.core.NodeData;
 import com.sdnelson.msc.research.lcf4j.core.NodeRegistry;
@@ -41,6 +44,8 @@ public class WebSocketFrameHandler extends SimpleChannelInboundHandler<WebSocket
         if (frame instanceof TextWebSocketFrame) {
             // Send the uppercase string back.
             String request = ((TextWebSocketFrame) frame).text();
+            logger.info("Current Node Count : " + NodeRegistry.getActiveNodeCount() + ", Server received {" +  request + "}");
+            ctx.channel().writeAndFlush(new TextWebSocketFrame("Time : " + new Date() + ", Node Count : " + NodeRegistry.getActiveNodeCount()));
             logger.info("WebSocket Client Received Message: " +  request);
             Collection<NodeData> activeNodeDataList = NodeRegistry.getActiveNodeDataList();
 
@@ -67,7 +72,7 @@ public class WebSocketFrameHandler extends SimpleChannelInboundHandler<WebSocket
         NodeRegistry.addNode(new NodeData(ctx.channel().id().toString(),
                         ctx.channel().remoteAddress().toString().replace("/", "")));
         logger.info("[" + ctx.channel().id().toString() +
-                " {" +  ctx.channel().remoteAddress().toString().replace("/", "") + "} ] is ONLINE.");
+                " {" +  ctx.channel().remoteAddress().toString().replace("/", "") + "} ] is ACTIVE.");
     }
 
     @Override
@@ -88,7 +93,7 @@ public class WebSocketFrameHandler extends SimpleChannelInboundHandler<WebSocket
         TextWebSocketFrame frame = new TextWebSocketFrame("Registered.");
         ctx.channel().writeAndFlush(frame);
         logger.info("[" + ctx.channel().id().toString() +
-                " {" +  ctx.channel().remoteAddress().toString().replace("/", "") + "} ] is ACTIVE.");
+                " {" +  ctx.channel().remoteAddress().toString().replace("/", "") + "} ] is ONLINE.");
         logger.info("[ Node Count : " + NodeRegistry.getActiveNodeCount() + "] " +
                 "[ Active Node List : " + NodeRegistry.getActiveNodeDataList() + "]");
         logger.info("[ Node Count : " + NodeRegistry.getActiveNodeCount() + "] [ Active Node List : " + NodeRegistry.getActiveNodeKeyList() + "]");

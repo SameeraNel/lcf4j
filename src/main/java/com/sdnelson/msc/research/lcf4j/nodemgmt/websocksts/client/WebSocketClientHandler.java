@@ -35,13 +35,10 @@
 //OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //THE SOFTWARE.
 
-package com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.client;
+package com.sdnelson.msc.research.lcf4j.websocksts.client;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelPromise;
-import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.*;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
@@ -51,6 +48,8 @@ import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketHandshakeException;
 import io.netty.util.CharsetUtil;
 import org.apache.log4j.Logger;
+
+import java.util.concurrent.TimeUnit;
 
 public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> {
 
@@ -100,10 +99,10 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         if (!handshaker.isHandshakeComplete()) {
             try {
                 handshaker.finishHandshake(ch, (FullHttpResponse) msg);
-                System.out.println("WebSocket Client connected!");
+                logger.info("WebSocket Client connected!");
                 handshakeFuture.setSuccess();
             } catch (WebSocketHandshakeException e) {
-                System.out.println("WebSocket Client failed to connect");
+                logger.info("WebSocket Client failed to connect");
                 handshakeFuture.setFailure(e);
             }
             return;
@@ -119,9 +118,9 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         WebSocketFrame frame = (WebSocketFrame) msg;
         if (frame instanceof TextWebSocketFrame) {
             TextWebSocketFrame textFrame = (TextWebSocketFrame) frame;
-            logger.info("WebSocket Client Received Message: " + textFrame.text());
+            logger.info("Client received message: " + textFrame.text());
         } else if (frame instanceof PongWebSocketFrame) {
-            logger.info("WebSocket Client received pong");
+            System.out.println("WebSocket Client received pong");
         } else if (frame instanceof CloseWebSocketFrame) {
             logger.info("WebSocket Client received closing");
             ch.close();
