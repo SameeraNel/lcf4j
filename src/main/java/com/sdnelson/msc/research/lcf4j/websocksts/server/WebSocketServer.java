@@ -40,9 +40,9 @@ public final class WebSocketServer {
     static final int PORT = Integer.parseInt(System.getProperty("port", SSL? "8443" : "8080"));
 
     public static void main(String[] args) throws Exception {
-
+        logger.info("Application is Starting ...");
         final Properties properties = loadConfigFile();
-        final String hostName = properties.getProperty("lcf4j.nodes.host");
+        final String hostName = properties.getProperty("lcf4j.server.host");
         // Configure SSL.
         final SslContext sslCtx;
         if (SSL) {
@@ -51,9 +51,11 @@ public final class WebSocketServer {
         } else {
             sslCtx = null;
         }
-
-        EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-        EventLoopGroup workerGroup = new NioEventLoopGroup();
+        logger.info("Server boot sequence initiated.");
+        EventLoopGroup bossGroup = new NioEventLoopGroup(
+                Integer.valueOf(properties.getProperty("server.master.threadpool.size")));
+        EventLoopGroup workerGroup = new NioEventLoopGroup(Integer.valueOf(
+                properties.getProperty("server.slave.threadpool.size")));
         try {
             ServerBootstrap b = new ServerBootstrap();
             b.group(bossGroup, workerGroup)
@@ -61,7 +63,9 @@ public final class WebSocketServer {
              .handler(new LoggingHandler(LogLevel.DEBUG))
              .childHandler(new WebSocketServerInitializer(sslCtx));
 
+            logger.info("Server boot sequence initiated.");
             Channel ch = b.bind(PORT).sync().channel();
+            logger.info("Server boot sequence Completed.");
             NodeRegistry.addNode(new NodeData(ch.id().toString(), hostName));
             logger.info("[ Node Count : " + NodeRegistry.getActiveNodeCount() + "] " +
                     "[ Active Node List : " + NodeRegistry.getActiveNodeDataList() + "]");
