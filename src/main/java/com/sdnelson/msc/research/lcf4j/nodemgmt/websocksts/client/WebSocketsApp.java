@@ -16,7 +16,7 @@ public class WebSocketsApp {
                             public void run() {
                                 try {
                                     WebSocketClient webSocketClient = new WebSocketClient();
-                                    webSocketClient.startClient();
+                                    webSocketClient.startClient("localhost",8080);
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }

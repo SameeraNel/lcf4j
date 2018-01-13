@@ -1,23 +1,8 @@
-/*
- * Copyright 2014 The Netty Project
- *
- * The Netty Project licenses this file to you under the Apache License,
- * version 2.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations
- * under the License.
- */
 package com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.client;
 
 import com.sdnelson.msc.research.lcf4j.core.NodeData;
 import com.sdnelson.msc.research.lcf4j.core.NodeRegistry;
-import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.server.WebSocketServer;
+import com.sdnelson.msc.research.lcf4j.util.ClusterConfig;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -37,66 +22,50 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import org.apache.log4j.Logger;
 
 import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigInteger;
 import java.net.URI;
-import java.util.Properties;
 import java.security.MessageDigest;
 import java.util.Collection;
-import java.util.Properties;
 
-/**
- * This is an example of a WebSocket client.
- * <p>
- * In order to run this example you need a compatible WebSocket server.
- * Therefore you can either start the WebSocket server from the examples
- * by running {@link com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.server.WebSocketServer}
- * or connect to an existing WebSocket server such as
- * <a href="http://www.websocket.org/echo.html">ws://echo.websocket.org</a>.
- * <p>
- * The client will attempt to connect to the URI passed to it as the first argument.
- * You don't have to specify any arguments if you want to connect to the example WebSocket server,
- * as this is the default.
- */
 public final class WebSocketClient {
 
     final static org.apache.log4j.Logger logger = Logger.getLogger(WebSocketClient.class);
-    static final String URL = System.getProperty("url", "ws://127.0.0.1:8080/websocket");
+    static final String URL = System.getProperty("url", "ws://127.0.0.1:8010/websocket");
+    public static final String WEB_SOCKETS_SCHEME = "ws";
+    public static final String LOCALHOST_ADDRESS = "127.0.0.1";
+    public static final String WSSWEB_SOCKETS_SECURE_SCHEME = "wss";
+    public static final String ONLY_WS_S_IS_SUPPORTED = "Only WS(S) is supported.";
 
     public static void main(String[] args) throws Exception {
-        new WebSocketClient().startClient();
+        new WebSocketClient().startClient("localhost", 8080);
     }
-    public void startClient() throws Exception {
-        final Properties properties = loadConfigFile();
-        new WebSocketClient().runClient();
-    }
-    public  void runClient() throws Exception {
-        logger.info("Client is starting ...");
-        final Properties properties = loadConfigFile();
-        URI uri = new URI(URL);
-        String scheme = uri.getScheme() == null? "ws" : uri.getScheme();
-        final String host = uri.getHost() == null? "127.0.0.1" : uri.getHost();
-        final int port;
-        if (uri.getPort() == -1) {
-            if ("ws".equalsIgnoreCase(scheme)) {
-                port = 80;
-            } else if ("wss".equalsIgnoreCase(scheme)) {
-                port = 443;
-            } else {
-                port = -1;
-            }
-        } else {
-            port = uri.getPort();
-        }
 
-        if (!"ws".equalsIgnoreCase(scheme) && !"wss".equalsIgnoreCase(scheme)) {
-            System.err.println("Only WS(S) is supported.");
+    public void startClient(final String host, final int port) throws Exception {
+        logger.info("Node Client is starting ...");
+        URI uri = new URI(URL);
+        String scheme = uri.getScheme() == null? WEB_SOCKETS_SCHEME : uri.getScheme();
+//        final String host = uri.getHost() == null? LOCALHOST_ADDRESS : uri.getHost();
+//        final int port;
+//        if (uri.getPort() == -1) {
+//            if (WEB_SOCKETS_SCHEME.equalsIgnoreCase(scheme)) {
+//                port = 80;
+//            } else if (WSSWEB_SOCKETS_SECURE_SCHEME.equalsIgnoreCase(scheme)) {
+//                port = 443;
+//            } else {
+//                port = -1;
+//            }
+//        } else {
+//            port = uri.getPort();
+//        }
+
+        if (!WEB_SOCKETS_SCHEME.equalsIgnoreCase(scheme) &&
+                !WSSWEB_SOCKETS_SECURE_SCHEME.equalsIgnoreCase(scheme)) {
+            System.err.println(ONLY_WS_S_IS_SUPPORTED);
             return;
         }
 
-        final boolean ssl = "wss".equalsIgnoreCase(scheme);
+        final boolean ssl = WSSWEB_SOCKETS_SECURE_SCHEME.equalsIgnoreCase(scheme);
         final SslContext sslCtx;
         if (ssl) {
             sslCtx = SslContextBuilder.forClient()
@@ -105,14 +74,9 @@ public final class WebSocketClient {
             sslCtx = null;
         }
 
-        EventLoopGroup group = new NioEventLoopGroup(Integer.valueOf(
-                properties.getProperty("client.salve.threadpool.size")));
-        logger.info(properties.getProperty("client.slave.threadpool.size"));
+        EventLoopGroup group = new NioEventLoopGroup(ClusterConfig.getClientSlaveThreadpoolSize());
         ChannelFuture sync;
         try {
-            // Connect with V13 (RFC 6455 aka HyBi-17). You can change it to V08 or V00.
-            // If you change it to V00, ping is not supported and remember to change
-            // HttpResponseDecoder to WebSocketHttpResponseDecoder in the pipeline.
             final WebSocketClientHandler handler =
                     new WebSocketClientHandler(
                             WebSocketClientHandshakerFactory.newHandshaker(
@@ -135,9 +99,9 @@ public final class WebSocketClient {
                                     handler);
                         }
                     });
-            logger.info("Client boot sequence initiated.");
+            logger.info("Client boot sequence initiated...");
             Channel ch = b.connect(uri.getHost(), port).sync().channel();
-            logger.info("Client boot sequence completed.");
+            logger.info("Client boot sequence completed...");
 
             handler.handshakeFuture().sync();
             sync = handler.handshakeFuture().sync();
@@ -206,34 +170,4 @@ public final class WebSocketClient {
                 group.shutdownGracefully();
             }
         }
-
-    private static Properties loadConfigFile() {
-        Properties prop = new Properties();
-        InputStream input = null;
-
-        try {
-
-            String filename = "lcf4j.properties";
-            input = WebSocketServer.class.getClassLoader().getResourceAsStream(filename);
-            if(input==null){
-                logger.error("Sorry, unable to find " + filename);
-                return null;
-            }
-
-            prop.load(input);
-            logger.info("Property file loaded successfully.");
-
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        } finally{
-            if(input!=null){
-                try {
-                    input.close();
-                } catch (IOException e) {
-                    logger.error(e.getMessage());
-                }
-            }
-        }
-        return prop;
-    }
 }

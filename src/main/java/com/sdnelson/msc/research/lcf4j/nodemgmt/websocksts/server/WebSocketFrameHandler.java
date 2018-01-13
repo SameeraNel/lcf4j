@@ -46,7 +46,7 @@ public class WebSocketFrameHandler extends SimpleChannelInboundHandler<WebSocket
             String request = ((TextWebSocketFrame) frame).text();
             logger.info("Current Node Count : " + NodeRegistry.getActiveNodeCount() + ", Server received {" +  request + "}");
             ctx.channel().writeAndFlush(new TextWebSocketFrame("Time : " + new Date() + ", Node Count : " + NodeRegistry.getActiveNodeCount()));
-            logger.info("WebSocket Client Received Message: " +  request);
+            logger.info("WebSocket Server Received Message: " +  request);
             Collection<NodeData> activeNodeDataList = NodeRegistry.getActiveNodeDataList();
 
             String hashtext = "";
