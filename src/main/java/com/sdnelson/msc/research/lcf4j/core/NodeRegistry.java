@@ -1,62 +1,82 @@
 package com.sdnelson.msc.research.lcf4j.core;
 
+import org.apache.log4j.Logger;
+
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Created by SDN on 12/17/2017.
- */
+
 public class NodeRegistry {
 
-    private static ConcurrentHashMap<String, NodeData> globalNodeMap = new ConcurrentHashMap();
+    final static org.apache.log4j.Logger logger = Logger.getLogger(NodeRegistry.class);
 
-    private static ConcurrentHashMap<String, NodeData> activeNodeMap = new ConcurrentHashMap();
+    private static Calendar timestamp = Calendar.getInstance();
 
-    public static NodeData addNode(NodeData nodeData){
-        globalNodeMap.put(nodeData.getNodeHexaId(), nodeData);
-        activeNodeMap.put(nodeData.getNodeHexaId(), nodeData);
+    private static ConcurrentHashMap<String, NodeData> nodeDataMap = new ConcurrentHashMap();
+
+    public static NodeData addActiveNode(NodeData nodeData){
+        nodeDataMap.put(nodeData.getNodeName(), nodeData);
+        logger.info("[Node Added : " + nodeData.getNodeName() + "]");
+        registryStats();
         return nodeData;
     }
 
-    public static boolean contains(NodeData nodeData){
-        return activeNodeMap.containsKey(nodeData.getNodeHexaId());
+    public static boolean markNodeStatus(String nodeKey, NodeStatus nodeStatus){
+        final NodeData nodeData = getNodeData(nodeKey);
+        if(nodeData == null){
+            return false;
+        }
+        nodeData.setStatus(nodeStatus);
+        nodeData.setLastUpdated(Calendar.getInstance());
+        registryStats();
+        return true;
     }
 
-    public static NodeData getActiveNodeData(String key){
-        return activeNodeMap.get(key);
+    public static boolean contains(String nodeKey){
+        return nodeDataMap.containsKey(nodeKey);
     }
 
-    public static Collection<NodeData> getActiveNodeDataList(){
-        return activeNodeMap.values();
+    public static NodeData getNodeData(String key){
+        return nodeDataMap.get(key);
     }
 
-    public static ConcurrentHashMap.KeySetView<String, NodeData> getActiveNodeKeyList(){
-        return activeNodeMap.keySet();
+    public static NodeStatus getNodeStatus(String key){
+        final NodeData nodeData = nodeDataMap.get(key);
+        if(nodeData == null){
+            return NodeStatus.NOT_FOUND;
+        }
+        return nodeData.getStatus();
     }
 
-    public static NodeData getGlobalNodeData(String key){
-        return globalNodeMap.get(key);
+    public static List<NodeData> getNodeDataList(){
+        final ArrayList<NodeData> dataList = new ArrayList<>();
+        dataList.addAll(nodeDataMap.values());
+        registryStats();
+        return dataList;
     }
 
-    public static Collection<NodeData> getGlobalNodeDataList(){
-        return globalNodeMap.values();
+    public static ConcurrentHashMap.KeySetView<String, NodeData> getNodeKeyList(){
+        return nodeDataMap.keySet();
     }
 
-    public static ConcurrentHashMap.KeySetView<String, NodeData> getGlobalNodeKeyList(){
-        return globalNodeMap.keySet();
+    public static int getNodeCount(){
+        return nodeDataMap.size();
     }
 
-    public static NodeData removeActiveNodeData(String key){
-        return activeNodeMap.remove(key);
+    private static void registryStats() {
+        timestamp = Calendar.getInstance();
+        StringBuilder nodeStat = new StringBuilder();
+        nodeStat.append("[Node Count : " + NodeRegistry.getNodeCount() + "]");
+        nodeStat.append("[");
+        nodeDataMap.forEach((k, v) -> nodeStat.append( " {" + k + " : " + v.getStatus() + "} "));
+        nodeStat.append("]");
+        logger.info(nodeStat.toString());
     }
 
-    public static int getActiveNodeCount(){
-        return activeNodeMap.size();
+    public static Calendar getTimestamp() {
+        return timestamp;
     }
-
-    public static int getGlobalNodeCount(){
-        return globalNodeMap.size();
-    }
-
-
 }

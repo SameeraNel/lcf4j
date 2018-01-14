@@ -38,7 +38,6 @@ public final class ClusterConfig {
         properties = loadConfigFile();
         loadClusterNodeList();
         loadNodeServerName();
-        loadNodeServerPort();
         loadNodeServerPortSsl();
         loadServerMasterThreadpoolSize();
         loadServerSlaveThreadpoolSize();
@@ -46,7 +45,7 @@ public final class ClusterConfig {
     }
 
     private static void loadNodeServerPortSsl() {
-        nodeServerPort = Integer.valueOf(properties.getProperty(NODE_SERVER_PORT_SSL));
+        nodeServerPortSsl = Integer.valueOf(properties.getProperty(NODE_SERVER_PORT_SSL));
     }
 
     private static void loadClusterNodeList() {

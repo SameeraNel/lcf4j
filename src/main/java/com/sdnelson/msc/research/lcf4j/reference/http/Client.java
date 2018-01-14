@@ -65,7 +65,7 @@ public final class Client {
 //                BigInteger number = new BigInteger(1, messageDigest);
 //                hashtext += number.toString(16);
 //            }
-            channelFuture.channel().writeAndFlush(new TextWebSocketFrame("NodeData Hash : " + hashtext + ":" +" Node Count : " + NodeRegistry.getActiveNodeCount()));
+            channelFuture.channel().writeAndFlush(new TextWebSocketFrame("NodeData Hash : " + hashtext + ":" +" Node Count : " + NodeRegistry.getNodeCount()));
             Thread.sleep(1000);
         }
     }

@@ -37,18 +37,20 @@
 
 package com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.client;
 
+import com.sdnelson.msc.research.lcf4j.core.NodeClusterMessage;
+import com.sdnelson.msc.research.lcf4j.core.RequestClusterMessage;
+import com.sdnelson.msc.research.lcf4j.nodemgmt.core.ClusterManager;
+import com.sdnelson.msc.research.lcf4j.util.WebSocketFrameUtil;
 import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.WebSocketClientHandshaker;
-import io.netty.handler.codec.http.websocketx.WebSocketFrame;
-import io.netty.handler.codec.http.websocketx.WebSocketHandshakeException;
+import io.netty.handler.codec.http.websocketx.*;
 import io.netty.util.CharsetUtil;
 import org.apache.log4j.Logger;
 
+import java.io.ByteArrayInputStream;
+import java.io.ObjectInputStream;
 import java.util.concurrent.TimeUnit;
 
 public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> {
@@ -119,8 +121,17 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         if (frame instanceof TextWebSocketFrame) {
             TextWebSocketFrame textFrame = (TextWebSocketFrame) frame;
             logger.info("Client received message: " + textFrame.text());
+        } else if (frame instanceof BinaryWebSocketFrame) {
+            ByteArrayInputStream baos = new ByteArrayInputStream(ByteBufUtil.getBytes(frame.content()));
+            ObjectInputStream oos = new ObjectInputStream(baos);
+            final Object readObject = oos.readObject();
+            if( readObject instanceof NodeClusterMessage){
+                logger.info("Cluster node data message received from server [" + ctx.channel().remoteAddress() + "]");
+                NodeClusterMessage nodeClusterMessage = (NodeClusterMessage) readObject;
+                ClusterManager.resolveNodeDataMessage(nodeClusterMessage);
+            }
         } else if (frame instanceof PongWebSocketFrame) {
-            System.out.println("WebSocket Client received pong");
+            logger.info("WebSocket Client received pong");
         } else if (frame instanceof CloseWebSocketFrame) {
             logger.info("WebSocket Client received closing");
             ch.close();

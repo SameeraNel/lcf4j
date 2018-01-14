@@ -72,23 +72,23 @@ public final class UptimeServer {
                          }
                      });
             ChannelFuture channelFuture = bootstrap.bind(port).sync();
-            channelFuture.channel().writeAndFlush("Time : " + new Date() + ":" +"Node Count : " + NodeRegistry.getActiveNodeCount());
+            channelFuture.channel().writeAndFlush("Time : " + new Date() + ":" +"Node Count : " + NodeRegistry.getNodeCount());
             logger.info("Server started @ localhost =" + ":" + port);
 
                 try {
                     logger.info("Server listening for client requests");
-                    NodeRegistry.addNode(new NodeData(channelFuture.channel().id().toString(), hostName));
-                    logger.info("[ Node Count : " + NodeRegistry.getActiveNodeCount() + "] " +
-                            "[ Active Node List : " + NodeRegistry.getActiveNodeDataList() + "]");
-                    logger.info("[ Node Count : " + NodeRegistry.getActiveNodeCount() + "] [ Active Node List : " + NodeRegistry.getActiveNodeKeyList() + "]");
-                    logger.info("[ Node Count : " + NodeRegistry.getGlobalNodeCount() + "] [ Global Node List : " + NodeRegistry.getGlobalNodeKeyList() + "]");
+                    NodeRegistry.addActiveNode(new NodeData(hostName, channelFuture.channel().remoteAddress().toString()));
+//                    logger.info("[ Node Count : " + NodeRegistry.getActiveNodeCount() + "] " +
+//                            "[ Active Node List : " + NodeRegistry.getActiveNodeDataList() + "]");
+//                    logger.info("[ Node Count : " + NodeRegistry.getActiveNodeCount() + "] [ Active Node List : " + NodeRegistry.getActiveNodeKeyList() + "]");
+//                    logger.info("[ Node Count : " + NodeRegistry.getFailedNodeCount() + "] [ Global Node List : " + NodeRegistry.getFailedNodeKeyList() + "]");
                     channelFuture.channel().closeFuture().sync();
 
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             String hashtext = "";
-            Collection<NodeData> activeNodeDataList = NodeRegistry.getActiveNodeDataList();
+            Collection<NodeData> activeNodeDataList = NodeRegistry.getNodeDataList();
             for (NodeData dataList : activeNodeDataList) {
                 MessageDigest md = null;
                 try {
@@ -100,7 +100,7 @@ public final class UptimeServer {
                 BigInteger number = new BigInteger(1, messageDigest);
                 hashtext += number.toString(16);
             }
-            channelFuture.channel().writeAndFlush("NodeData Hash : " + hashtext + ":" +" Node Count : " + NodeRegistry.getActiveNodeCount());
+            channelFuture.channel().writeAndFlush("NodeData Hash : " + hashtext + ":" +" Node Count : " + NodeRegistry.getNodeCount());
             logger.info("Server waiting for client requests");
         } catch (InterruptedException e) {
             logger.error(e.getMessage());

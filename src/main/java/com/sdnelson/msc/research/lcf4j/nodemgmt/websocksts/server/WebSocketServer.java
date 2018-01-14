@@ -15,25 +15,39 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
 import org.apache.log4j.Logger;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 public final class WebSocketServer {
 
     final static org.apache.log4j.Logger logger = Logger.getLogger(WebSocketServer.class);
-    public static final String SSL_SCHEME = "ssl";
-    static final boolean SSL = System.getProperty(SSL_SCHEME) != null;
-    static final String host = ClusterConfig.getNodeServerName();
-    static final int port = SSL? ClusterConfig.getNodeServerPortSsl() : ClusterConfig.getNodeServerPort();
+    public final String SSL_SCHEME = "ssl";
+//    final boolean SSL = System.getProperty(SSL_SCHEME) != null;
+    final boolean SSL = true;
+    ExecutorService serverListener = Executors.newFixedThreadPool(1);
 
-    public void startServer() throws Exception {
-        logger.info("Node Server is Starting @ " + host + ":"+ port + " ...");
+    public static void main(String[] args) throws Exception {
+        ClusterConfig.initClusterConfig();
+        new WebSocketServer().startServer("001", 8444);
+    }
+
+    public void startServer(final String serverName, final int port) throws Exception {
+        logger.info("Node Server is Starting @ " + serverName + ":"+ port + " ...");
+        if(NodeRegistry.contains(serverName)){
+            logger.info("Node Name conflict found, [ " + ClusterConfig.getNodeServerName()+ " ] already exists.");
+            return;
+        }
         final SslContext sslCtx;
         if (SSL) {
             SelfSignedCertificate ssc = new SelfSignedCertificate();
             sslCtx = SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey()).build();
+            logger.info("WSS Scheme initiated.");
         } else {
             sslCtx = null;
         }
         EventLoopGroup bossGroup = new NioEventLoopGroup(ClusterConfig.getServerMasterThreadpoolSize());
         EventLoopGroup workerGroup = new NioEventLoopGroup(ClusterConfig.getServerSlaveThreadpoolSize());
+        Runnable listeningTask = () -> {
         try {
             ServerBootstrap b = new ServerBootstrap();
             b.group(bossGroup, workerGroup)
@@ -41,19 +55,21 @@ public final class WebSocketServer {
              .handler(new LoggingHandler(LogLevel.DEBUG))
              .childHandler(new WebSocketServerInitializer(sslCtx));
 
-            logger.info("Server boot sequence initiated.");
+            logger.info("Server Boot Sequence Initiated @ " + serverName + ":"+ port + " ...");
             Channel ch = b.bind(port).sync().channel();
-            logger.info("Server boot sequence Completed.");
-            NodeRegistry.addNode(new NodeData(ch.id().toString(), ClusterConfig.getNodeServerName()));
-            logger.info("[ Node Count : " + NodeRegistry.getActiveNodeCount() + "] " +
-                    "[ Active Node List : " + NodeRegistry.getActiveNodeDataList() + "]");
-            logger.info("[ Node Count : " + NodeRegistry.getActiveNodeCount() + "] [ Active Node List : " + NodeRegistry.getActiveNodeKeyList() + "]");
-            logger.info("[ Node Count : " + NodeRegistry.getGlobalNodeCount() + "] [ Global Node List : " + NodeRegistry.getGlobalNodeKeyList() + "]");
-
+            final NodeData nodeData = new NodeData(ClusterConfig.getNodeServerName(), ch.localAddress().toString());
+            logger.info("Server Boot Sequence Completed @ " + serverName + ":"+ port + " ...");
+            logger.debug("Server Node Data Record Created : " + nodeData.toString());
+            NodeRegistry.addActiveNode(nodeData);
             ch.closeFuture().sync();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         } finally {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
         }
+        };
+        serverListener.execute(listeningTask);
+
     }
 }

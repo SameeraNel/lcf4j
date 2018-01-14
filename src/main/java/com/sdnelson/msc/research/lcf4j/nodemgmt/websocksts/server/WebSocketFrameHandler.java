@@ -15,17 +15,21 @@
  */
 package com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.server;
 
-import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Locale;
-import java.util.concurrent.ConcurrentHashMap;
+import java.io.ByteArrayInputStream;
+import java.io.ObjectInputStream;
 
+import com.sdnelson.msc.research.lcf4j.core.NodeClusterMessage;
 import com.sdnelson.msc.research.lcf4j.core.NodeData;
 import com.sdnelson.msc.research.lcf4j.core.NodeRegistry;
+import com.sdnelson.msc.research.lcf4j.core.RequestClusterMessage;
+import com.sdnelson.msc.research.lcf4j.nodemgmt.core.ClusterManager;
+import com.sdnelson.msc.research.lcf4j.util.ClusterConfig;
+import com.sdnelson.msc.research.lcf4j.util.WebSocketFrameUtil;
+import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import org.apache.log4j.Logger;
@@ -36,29 +40,24 @@ import org.apache.log4j.Logger;
 public class WebSocketFrameHandler extends SimpleChannelInboundHandler<WebSocketFrame> {
 
     final static Logger logger = org.apache.log4j.Logger.getLogger(WebSocketFrameHandler.class);
+    final String nodeName = ClusterConfig.getNodeServerName();
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, WebSocketFrame frame) throws Exception {
-        // ping and pong frames already handled
 
-        if (frame instanceof TextWebSocketFrame) {
-            // Send the uppercase string back.
-            String request = ((TextWebSocketFrame) frame).text();
-            logger.info("Current Node Count : " + NodeRegistry.getActiveNodeCount() + ", Server received {" +  request + "}");
-            ctx.channel().writeAndFlush(new TextWebSocketFrame("Time : " + new Date() + ", Node Count : " + NodeRegistry.getActiveNodeCount()));
-            logger.info("WebSocket Server Received Message: " +  request);
-            Collection<NodeData> activeNodeDataList = NodeRegistry.getActiveNodeDataList();
+        if (frame instanceof BinaryWebSocketFrame) {
+            ByteArrayInputStream baos = new ByteArrayInputStream(ByteBufUtil.getBytes(frame.content()));
+            ObjectInputStream oos = new ObjectInputStream(baos);
+            if( oos.readObject() instanceof RequestClusterMessage){
+                logger.info("Cluster node request message received from Client [" + ctx.channel().id().toString()
+                        + " {" +  ctx.channel().remoteAddress().toString().replace("/", "") + "} ]" );
+                ctx.writeAndFlush(WebSocketFrameUtil.getNodeDataWebSocketFrame());
 
-            String hashtext = "";
-            for (NodeData dataList : activeNodeDataList) {
-                MessageDigest md = MessageDigest.getInstance("MD5");
-                byte[] messageDigest = md.digest(dataList.toString().getBytes());
-                BigInteger number = new BigInteger(1, messageDigest);
-                hashtext += number.toString(16);
+            } else {
+                String message = "unsupported message type: " + oos.readObject().getClass();
+                throw new UnsupportedOperationException(message);
             }
-            ctx.channel().writeAndFlush(new TextWebSocketFrame("NodeData Hash : " + hashtext + ":" +" Node Count : " + NodeRegistry.getActiveNodeCount()));
-
-        } else {
+        }else {
             String message = "unsupported frame type: " + frame.getClass().getName();
             throw new UnsupportedOperationException(message);
         }
@@ -67,43 +66,28 @@ public class WebSocketFrameHandler extends SimpleChannelInboundHandler<WebSocket
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
         super.channelRegistered(ctx);
-        NodeRegistry.addNode(new NodeData(ctx.channel().id().toString(),
-                        ctx.channel().remoteAddress().toString().replace("/", "")));
-        NodeRegistry.addNode(new NodeData(ctx.channel().id().toString(),
-                        ctx.channel().remoteAddress().toString().replace("/", "")));
-        logger.info("[" + ctx.channel().id().toString() +
-                " {" +  ctx.channel().remoteAddress().toString().replace("/", "") + "} ] is ACTIVE.");
+        logger.info("Client [" + ctx.channel().id().toString() +
+                " {" +  ctx.channel().remoteAddress().toString().replace("/", "") + "} ] is Registered.");
     }
 
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
         super.channelUnregistered(ctx);
-        NodeRegistry.removeActiveNodeData(ctx.channel().id().toString());
-        logger.info("[ Node Count : " + NodeRegistry.getActiveNodeCount() + "] " +
-                "[ Active Node List : " + NodeRegistry.getActiveNodeDataList() + "]");
-        logger.info("[ Node Count : " + NodeRegistry.getActiveNodeCount() + "] [ Active Node List : " + NodeRegistry.getActiveNodeKeyList() + "]");
-        logger.info("[" + ctx.channel().id().toString() +
+        logger.info("Client [" + ctx.channel().id().toString() +
                 " {" +  ctx.channel().remoteAddress().toString().replace("/", "") + "} ] is OFFLINE.");
-        logger.info("[ Node Count : " + NodeRegistry.getGlobalNodeCount() + "] [ Global Node List : " + NodeRegistry.getGlobalNodeKeyList() + "]");
     }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
-        TextWebSocketFrame frame = new TextWebSocketFrame("Registered.");
-        ctx.channel().writeAndFlush(frame);
-        logger.info("[" + ctx.channel().id().toString() +
-                " {" +  ctx.channel().remoteAddress().toString().replace("/", "") + "} ] is ONLINE.");
-        logger.info("[ Node Count : " + NodeRegistry.getActiveNodeCount() + "] " +
-                "[ Active Node List : " + NodeRegistry.getActiveNodeDataList() + "]");
-        logger.info("[ Node Count : " + NodeRegistry.getActiveNodeCount() + "] [ Active Node List : " + NodeRegistry.getActiveNodeKeyList() + "]");
-        logger.info("[ Node Count : " + NodeRegistry.getGlobalNodeCount() + "] [ Global Node List : " + NodeRegistry.getGlobalNodeKeyList() + "]");
+        logger.info("Client [" + ctx.channel().id().toString()
+                + " {" +  ctx.channel().remoteAddress().toString().replace("/", "") + "} ] is ONLINE.");
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         super.channelInactive(ctx);
-        logger.info("[" + ctx.channel().id().toString() +
+        logger.info("Client [" + ctx.channel().id().toString() +
                 " {" +  ctx.channel().remoteAddress().toString().replace("/", "") + "} ] is INACTIVE.");
     }
 }

@@ -38,7 +38,7 @@ public class ClientHandler extends SimpleChannelInboundHandler<Object> {
         if (startTime < 0) {
             startTime = System.currentTimeMillis();
         }
-        println("[ " +ctx.channel().remoteAddress() + " ]");Collection<NodeData> activeNodeDataList = NodeRegistry.getActiveNodeDataList();
+        println("[ " +ctx.channel().remoteAddress() + " ]");Collection<NodeData> activeNodeDataList = NodeRegistry.getNodeDataList();
         String hashtext = "";
         for (NodeData dataList : activeNodeDataList) {
             MessageDigest md = null;
@@ -51,7 +51,7 @@ public class ClientHandler extends SimpleChannelInboundHandler<Object> {
             BigInteger number = new BigInteger(1, messageDigest);
             hashtext += number.toString(16);
         }
-        ctx.channel().writeAndFlush(new TextWebSocketFrame("NodeData Hash : " + hashtext + ":" +" Node Count : " + NodeRegistry.getActiveNodeCount()));
+        ctx.channel().writeAndFlush(new TextWebSocketFrame("NodeData Hash : " + hashtext + ":" +" Node Count : " + NodeRegistry.getNodeCount()));
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
@@ -62,7 +62,7 @@ public class ClientHandler extends SimpleChannelInboundHandler<Object> {
     @Override
     public void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
         logger.info("{" + ctx.channel() + "} received {" +  msg + "}");
-        ctx.channel().writeAndFlush("Time : " + new Date() + ":" +"Node Count : " + NodeRegistry.getActiveNodeCount());
+        ctx.channel().writeAndFlush("Time : " + new Date() + ":" +"Node Count : " + NodeRegistry.getNodeCount());
     }
 
     @Override

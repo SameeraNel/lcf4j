@@ -3,31 +3,20 @@ package com.sdnelson.msc.research.lcf4j.core;
 import java.io.Serializable;
 import java.util.Calendar;
 
-/**
- * Created by SDN on 12/17/2017.
- */
 public class NodeData implements Serializable {
 
-    private String nodeHexaId;
     private String nodeName;
-    private String remoteAddress;
-    private Calendar registeredTime;
-    private Calendar unregisteredTime;
-    private boolean status;
+    private String hostName;
+    private Calendar lastUpdated;
+    private Calendar startTime;
+    private NodeStatus status;
 
-    public NodeData(String nodeHexaId, String remoteAddress) {
-        this.nodeHexaId = nodeHexaId;
-        this.remoteAddress = remoteAddress;
-        this.registeredTime = Calendar.getInstance();
-        this.status = true;
-    }
-
-    public String getNodeHexaId() {
-        return nodeHexaId;
-    }
-
-    public void setNodeHexaId(String nodeHexaId) {
-        this.nodeHexaId = nodeHexaId;
+    public NodeData(String nodeName, String hostName) {
+        this.nodeName = nodeName;
+        this.hostName = hostName;
+        this.startTime = Calendar.getInstance();
+        this.lastUpdated = Calendar.getInstance();
+        this.status = NodeStatus.ACTIVE;
     }
 
     public String getNodeName() {
@@ -38,45 +27,45 @@ public class NodeData implements Serializable {
         this.nodeName = nodeName;
     }
 
-    public String getRemoteAddress() {
-        return remoteAddress;
+    public String getHostName() {
+        return hostName;
     }
 
-    public void setRemoteAddress(String remoteAddress) {
-        this.remoteAddress = remoteAddress;
+    public void setHostName(String hostName) {
+        this.hostName = hostName;
     }
 
-    public Calendar getRegisteredTime() {
-        return registeredTime;
+    public Calendar getLastUpdated() {
+        return lastUpdated;
     }
 
-    public void setRegisteredTime(Calendar registeredTime) {
-        this.registeredTime = registeredTime;
+    public void setLastUpdated(Calendar lastUpdated) {
+        this.lastUpdated = lastUpdated;
     }
 
-    public Calendar getUnregisteredTime() {
-        return unregisteredTime;
+    public Calendar getStartTime() {
+        return startTime;
     }
 
-    public void setUnregisteredTime(Calendar unregisteredTime) {
-        this.unregisteredTime = unregisteredTime;
+    public void setStartTime(Calendar startTime) {
+        this.startTime = startTime;
     }
 
-    public boolean isStatus() {
+    public NodeStatus getStatus() {
         return status;
     }
 
-    public void setStatus(boolean status) {
+    public void setStatus(NodeStatus status) {
         this.status = status;
     }
 
     @Override
     public String toString() {
         return "NodeData{" +
-                "nodeHexaId='" + nodeHexaId + '\'' +
-                ", nodeName='" + nodeName + '\'' +
-                ", remoteAddress='" + remoteAddress + '\'' +
-                ", registeredTime=" + registeredTime.getTime() +
+                "nodeName='" + nodeName + '\'' +
+                ", hostName='" + hostName + '\'' +
+                ", lastUpdated=" + lastUpdated.getTime() +
+                ", startTime=" + startTime.getTime() +
                 ", status=" + status +
                 '}';
     }

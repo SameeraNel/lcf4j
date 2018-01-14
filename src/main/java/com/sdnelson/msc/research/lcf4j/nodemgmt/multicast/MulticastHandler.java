@@ -36,14 +36,14 @@ public class MulticastHandler extends SimpleChannelInboundHandler<DatagramPacket
         ObjectInputStream oos = new ObjectInputStream(baos);
         NodeData nodeData = (NodeData)oos.readObject();
         logger.info(nodeData);
-        if(!NodeRegistry.contains(nodeData)){
-            NodeRegistry.addNode(nodeData);
+        if(!NodeRegistry.contains(nodeData.getNodeName())){
+            NodeRegistry.addActiveNode(nodeData);
             ctx.channel().writeAndFlush(getDatagramPacket());
         }
-        logger.info("[ Node Count : " + NodeRegistry.getActiveNodeCount() + "] " +
-                "[ Active Node List : " + NodeRegistry.getActiveNodeDataList() + "]");
-        logger.info("[ Node Count : " + NodeRegistry.getActiveNodeCount() + "] [ Active Node List : " + NodeRegistry.getActiveNodeKeyList() + "]");
-        logger.info("[ Node Count : " + NodeRegistry.getGlobalNodeCount() + "] [ Global Node List : " + NodeRegistry.getGlobalNodeKeyList() + "]");
+//        logger.info("[ Node Count : " + NodeRegistry.getActiveNodeCount() + "] " +
+//                "[ Active Node List : " + NodeRegistry.getActiveNodeDataList() + "]");
+//        logger.info("[ Node Count : " + NodeRegistry.getActiveNodeCount() + "] [ Active Node List : " + NodeRegistry.getActiveNodeKeyList() + "]");
+//        logger.info("[ Node Count : " + NodeRegistry.getFailedNodeCount() + "] [ Global Node List : " + NodeRegistry.getFailedNodeKeyList() + "]");
 
 
     }
@@ -64,7 +64,7 @@ public class MulticastHandler extends SimpleChannelInboundHandler<DatagramPacket
         ByteBuf buf = Unpooled.buffer();
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(baos);
-        final NodeData nodeData = new NodeData("Node0003", "lcf4j03");
+        final NodeData nodeData = new NodeData("lcf4j03", "");
         oos.writeObject(nodeData);
         oos.flush();
         buf.writeBytes(baos.toByteArray());
@@ -72,7 +72,7 @@ public class MulticastHandler extends SimpleChannelInboundHandler<DatagramPacket
                 new DatagramPacket(buf,
                         new InetSocketAddress("239.255.27.1", 11209),
                         new InetSocketAddress("abc123", 11209));
-        NodeRegistry.addNode(nodeData);
+        NodeRegistry.addActiveNode(nodeData);
         return dgram;
     }
 
