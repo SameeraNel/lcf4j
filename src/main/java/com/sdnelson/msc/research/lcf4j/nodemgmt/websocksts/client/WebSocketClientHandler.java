@@ -146,7 +146,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
                 ConflictClusterMessage conflictClusterMessage = (ConflictClusterMessage) readObject;
                 clientHostName = conflictClusterMessage.getNodeData().getNodeName();
                 ClusterManager.resolveConflictDataMessage(conflictClusterMessage);
-                ctx.fireChannelUnregistered();
+            //    ctx.fireChannelUnregistered();
             }
         } else if (frame instanceof PongWebSocketFrame) {
             logger.info("WebSocket Client received pong");

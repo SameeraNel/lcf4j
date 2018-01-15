@@ -89,7 +89,8 @@ public class WebSocketFrameHandler extends SimpleChannelInboundHandler<WebSocket
         super.channelUnregistered(ctx);
         logger.info("Client [" + ctx.channel().id().toString() +
                 " {" +  ctx.channel().remoteAddress().toString().replace("/", "") + "} ] is OFFLINE.");
-        ClusterManager.resolveUnRegistered(clientNodeMap.get( ctx.channel().id().toString()));
+        final String clientNodeName = clientNodeMap.get(ctx.channel().id().toString());
+        ClusterManager.resolveUnRegistered(clientNodeName);
     }
 
     @Override

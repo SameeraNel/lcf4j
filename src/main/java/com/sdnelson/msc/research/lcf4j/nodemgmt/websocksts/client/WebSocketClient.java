@@ -110,8 +110,9 @@ public final class WebSocketClient {
 
                 while (true) {
 //                    NodeRegistry.refreshLastUpdated(ClusterConfig.getNodeServerName());
-                    if(NodeRegistry.getNodeData(nodeServerName) != null && NodeStatus.PASSIVE.equals(
-                            NodeRegistry.getNodeData(nodeServerName).getStatus())){
+                    if(NodeRegistry.getNodeData(nodeServerName) != null &&
+                            (NodeStatus.PASSIVE.equals(NodeRegistry.getNodeData(nodeServerName).getStatus()) ||
+                            NodeStatus.OFFLINE.equals(NodeRegistry.getNodeData(nodeServerName).getStatus()))){
                         break;
                     }
                     ch.writeAndFlush(WebSocketFrameUtil.getRequestClusterWebSocketFrame());

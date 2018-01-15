@@ -14,6 +14,7 @@ public class Lcf4jCluster {
         initConfigProperties();
         startNodeServer();
         startNodeClients();
+        logger.info("LCF4J Cluster Framework Started Successfully ...");
     }
 
     private void startNodeClients() {
