@@ -1,5 +1,7 @@
 package com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.client;
 
+import com.sdnelson.msc.research.lcf4j.core.NodeRegistry;
+import com.sdnelson.msc.research.lcf4j.core.NodeStatus;
 import com.sdnelson.msc.research.lcf4j.util.ClusterConfig;
 import com.sdnelson.msc.research.lcf4j.util.WebSocketFrameUtil;
 import io.netty.bootstrap.Bootstrap;
@@ -42,7 +44,8 @@ public final class WebSocketClient {
     }
 
     public void startClient(final String host, final int port) throws Exception {
-        logger.info("Node Client is Starting @ " + ClusterConfig.getNodeServerName() + " for " + host + ":" + port );
+        final String nodeServerName = ClusterConfig.getNodeServerName();
+        logger.info("Node Client is Starting @ " + nodeServerName + " for " + host + ":" + port );
         URI uri = new URI(URL);
         String scheme = uri.getScheme() == null? WEB_SOCKETS_SCHEME : uri.getScheme();
 //        final String host = uri.getHost() == null? LOCALHOST_ADDRESS : uri.getHost();
@@ -100,14 +103,18 @@ public final class WebSocketClient {
                                         handler);
                             }
                         });
-                logger.info("Client Boot Sequence Initiated @ " + ClusterConfig.getNodeServerName() + " for " + host + ":" + port );
+                logger.info("Client Boot Sequence Initiated @ " + nodeServerName + " for " + host + ":" + port );
                 Channel ch = b.connect(uri.getHost(), port).sync().channel();
-                logger.info("Client Boot Sequence Completed @ " + ClusterConfig.getNodeServerName() + " for " + host + ":" + port );
-
+                logger.info("Client Boot Sequence Completed @ " + nodeServerName + " for " + host + ":" + port );
                 handler.handshakeFuture().sync();
 
                 while (true) {
-                    ch.writeAndFlush(WebSocketFrameUtil.requestClusterWebSocketFrame());
+//                    NodeRegistry.refreshLastUpdated(ClusterConfig.getNodeServerName());
+                    if(NodeRegistry.getNodeData(nodeServerName) != null && NodeStatus.PASSIVE.equals(
+                            NodeRegistry.getNodeData(nodeServerName).getStatus())){
+                        break;
+                    }
+                    ch.writeAndFlush(WebSocketFrameUtil.getRequestClusterWebSocketFrame());
                     Thread.sleep(5000);
             }
 
@@ -120,7 +127,7 @@ public final class WebSocketClient {
 //
 //                    while (true) {
 //                        String hashtext = "";
-//                        Collection<NodeData> activeNodeDataList = NodeRegistry.getNodeDataList();
+//                        Collection<NodeData> activeNodeDataList = NodeRegistry.getNodeData();
 //                        for (NodeData dataList : activeNodeDataList) {
 //                            MessageDigest md = MessageDigest.getInstance("MD5");
 //                            byte[] messageDigest = md.digest(dataList.toString().getBytes());

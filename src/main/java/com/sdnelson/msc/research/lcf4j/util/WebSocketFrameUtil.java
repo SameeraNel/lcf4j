@@ -1,10 +1,7 @@
 package com.sdnelson.msc.research.lcf4j.util;
 
 
-import com.sdnelson.msc.research.lcf4j.core.ClusterMessage;
-import com.sdnelson.msc.research.lcf4j.core.NodeClusterMessage;
-import com.sdnelson.msc.research.lcf4j.core.NodeRegistry;
-import com.sdnelson.msc.research.lcf4j.core.RequestClusterMessage;
+import com.sdnelson.msc.research.lcf4j.core.*;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
@@ -21,8 +18,16 @@ public class WebSocketFrameUtil {
         return getWebSocketFrame(new NodeClusterMessage(NodeRegistry.getNodeDataList()));
     }
 
-    public static WebSocketFrame requestClusterWebSocketFrame() throws IOException {
-        return getWebSocketFrame(new RequestClusterMessage());
+    public static WebSocketFrame getRequestClusterWebSocketFrame() throws IOException {
+        return getWebSocketFrame(new RequestClusterMessage(NodeRegistry.getServerNodeData()));
+    }
+
+    public static WebSocketFrame getResponseClusterWebSocketFrame() throws IOException {
+        return getWebSocketFrame(new ResponseClusterMessage(NodeRegistry.getServerNodeData()));
+    }
+
+    public static WebSocketFrame getConflictClusterWebSocketFrame() throws IOException {
+        return getWebSocketFrame(new ConflictClusterMessage(NodeRegistry.getServerNodeData()));
     }
 
     private static WebSocketFrame getWebSocketFrame(ClusterMessage clusterMessage) throws IOException {

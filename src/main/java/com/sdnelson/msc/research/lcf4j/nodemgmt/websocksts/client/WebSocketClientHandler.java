@@ -37,8 +37,10 @@
 
 package com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.client;
 
+import com.sdnelson.msc.research.lcf4j.core.ConflictClusterMessage;
 import com.sdnelson.msc.research.lcf4j.core.NodeClusterMessage;
 import com.sdnelson.msc.research.lcf4j.core.RequestClusterMessage;
+import com.sdnelson.msc.research.lcf4j.core.ResponseClusterMessage;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.core.ClusterManager;
 import com.sdnelson.msc.research.lcf4j.util.WebSocketFrameUtil;
 import io.netty.bootstrap.Bootstrap;
@@ -59,6 +61,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
     private final WebSocketClientHandshaker handshaker;
     private ChannelPromise handshakeFuture;
+    private String clientHostName;
 
     public WebSocketClientHandler(WebSocketClientHandshaker handshaker) {
         this.handshaker = handshaker;
@@ -88,6 +91,9 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
     public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
         super.channelUnregistered(ctx);
         logger.info("{" + ctx.channel() + "} Unregistered.");
+        if(clientHostName != null){
+            ClusterManager.resolveUnRegistered(clientHostName);
+        }
     }
 
     @Override
@@ -125,10 +131,22 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
             ByteArrayInputStream baos = new ByteArrayInputStream(ByteBufUtil.getBytes(frame.content()));
             ObjectInputStream oos = new ObjectInputStream(baos);
             final Object readObject = oos.readObject();
-            if( readObject instanceof NodeClusterMessage){
+
+            if(readObject instanceof NodeClusterMessage){
                 logger.info("Cluster node data message received from server [" + ctx.channel().remoteAddress() + "]");
                 NodeClusterMessage nodeClusterMessage = (NodeClusterMessage) readObject;
                 ClusterManager.resolveNodeDataMessage(nodeClusterMessage);
+            } else if(readObject instanceof ResponseClusterMessage){
+                logger.info("Cluster response data message received from server [" + ctx.channel().remoteAddress() + "]");
+                ResponseClusterMessage responseClusterMessage = (ResponseClusterMessage) readObject;
+                clientHostName = responseClusterMessage.getNodeData().getNodeName();
+                ClusterManager.resolveResponseDataMessage(responseClusterMessage);
+            } else if(readObject instanceof ConflictClusterMessage){
+                logger.info("Cluster conflict data message received from server [" + ctx.channel().remoteAddress() + "]");
+                ConflictClusterMessage conflictClusterMessage = (ConflictClusterMessage) readObject;
+                clientHostName = conflictClusterMessage.getNodeData().getNodeName();
+                ClusterManager.resolveConflictDataMessage(conflictClusterMessage);
+                ctx.fireChannelUnregistered();
             }
         } else if (frame instanceof PongWebSocketFrame) {
             logger.info("WebSocket Client received pong");

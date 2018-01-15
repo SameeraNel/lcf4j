@@ -1,5 +1,6 @@
 package com.sdnelson.msc.research.lcf4j.core;
 
+import com.sdnelson.msc.research.lcf4j.util.ClusterConfig;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
@@ -19,7 +20,7 @@ public class NodeRegistry {
 
     public static NodeData addActiveNode(NodeData nodeData){
         nodeDataMap.put(nodeData.getNodeName(), nodeData);
-        logger.info("[Node Added : " + nodeData.getNodeName() + "]");
+        logger.info("[Node updated : " + nodeData.getNodeName() + "]");
         registryStats();
         return nodeData;
     }
@@ -34,6 +35,16 @@ public class NodeRegistry {
         registryStats();
         return true;
     }
+
+    public static NodeData getNodeByRemoteHostName(String hostName){
+        for (NodeData nodeData : nodeDataMap.values()){
+            if(hostName.equals(nodeData.getHostName())){
+                return nodeData;
+            }
+        }
+        return null;
+    }
+
 
     public static boolean contains(String nodeKey){
         return nodeDataMap.containsKey(nodeKey);
@@ -51,11 +62,21 @@ public class NodeRegistry {
         return nodeData.getStatus();
     }
 
+    public static NodeData refreshLastUpdated(final String key){
+        final NodeData nodeData = nodeDataMap.get(key);
+        nodeData.refreshLastUpdated();
+        registryStats();
+        return nodeData;
+    }
+
     public static List<NodeData> getNodeDataList(){
         final ArrayList<NodeData> dataList = new ArrayList<>();
         dataList.addAll(nodeDataMap.values());
-        registryStats();
         return dataList;
+    }
+
+    public static NodeData getServerNodeData(){
+        return nodeDataMap.get(ClusterConfig.getNodeServerName());
     }
 
     public static ConcurrentHashMap.KeySetView<String, NodeData> getNodeKeyList(){
@@ -71,7 +92,7 @@ public class NodeRegistry {
         StringBuilder nodeStat = new StringBuilder();
         nodeStat.append("[Node Count : " + NodeRegistry.getNodeCount() + "]");
         nodeStat.append("[");
-        nodeDataMap.forEach((k, v) -> nodeStat.append( " {" + k + " : " + v.getStatus() + "} "));
+        nodeDataMap.forEach((k, v) -> nodeStat.append( " {" + k + " : " + v.getStatus() +  " : " + v.getLastUpdated().getTime() + "} "));
         nodeStat.append("]");
         logger.info(nodeStat.toString());
     }

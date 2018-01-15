@@ -2,6 +2,7 @@ package com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.server;
 
 import com.sdnelson.msc.research.lcf4j.core.NodeData;
 import com.sdnelson.msc.research.lcf4j.core.NodeRegistry;
+import com.sdnelson.msc.research.lcf4j.core.NodeStatus;
 import com.sdnelson.msc.research.lcf4j.util.ClusterConfig;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -24,19 +25,17 @@ public final class WebSocketServer {
     public final String SSL_SCHEME = "ssl";
 //    final boolean SSL = System.getProperty(SSL_SCHEME) != null;
     final boolean SSL = true;
-    ExecutorService serverListener = Executors.newFixedThreadPool(1);
+    final ExecutorService serverListener = Executors.newFixedThreadPool(1);
+
+
 
     public static void main(String[] args) throws Exception {
         ClusterConfig.initClusterConfig();
-        new WebSocketServer().startServer("001", 8444);
+        new WebSocketServer().startServer("localhost", 8444);
     }
 
     public void startServer(final String serverName, final int port) throws Exception {
         logger.info("Node Server is Starting @ " + serverName + ":"+ port + " ...");
-        if(NodeRegistry.contains(serverName)){
-            logger.info("Node Name conflict found, [ " + ClusterConfig.getNodeServerName()+ " ] already exists.");
-            return;
-        }
         final SslContext sslCtx;
         if (SSL) {
             SelfSignedCertificate ssc = new SelfSignedCertificate();
@@ -57,11 +56,28 @@ public final class WebSocketServer {
 
             logger.info("Server Boot Sequence Initiated @ " + serverName + ":"+ port + " ...");
             Channel ch = b.bind(port).sync().channel();
-            final NodeData nodeData = new NodeData(ClusterConfig.getNodeServerName(), ch.localAddress().toString());
+            final NodeData nodeData = new NodeData(serverName, ch.localAddress().toString());
+            nodeData.setStatus(NodeStatus.PASSIVE);
             logger.info("Server Boot Sequence Completed @ " + serverName + ":"+ port + " ...");
-            logger.debug("Server Node Data Record Created : " + nodeData.toString());
+            logger.info("Server Node Data Record Created : " + nodeData.toString());
+            Runnable listeningTask2 = () -> {
+                try {
+                    ch.closeFuture().sync();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            };
+            nodeData.setStatus(NodeStatus.ACTIVE);
             NodeRegistry.addActiveNode(nodeData);
-            ch.closeFuture().sync();
+            serverListener.execute(listeningTask2);
+            while (true) {
+                NodeRegistry.refreshLastUpdated(serverName);
+                try {
+                    Thread.sleep(4000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {

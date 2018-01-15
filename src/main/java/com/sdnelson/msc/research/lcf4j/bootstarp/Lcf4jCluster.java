@@ -12,8 +12,8 @@ public class Lcf4jCluster {
     public void startCluster() throws InterruptedException {
         logger.info("Initiating LCF4J Cluster Framework ...");
         initConfigProperties();
-        startNodeClients();
         startNodeServer();
+        startNodeClients();
     }
 
     private void startNodeClients() {
@@ -45,6 +45,7 @@ public class Lcf4jCluster {
         try {
             webSocketServer.startServer(
                     ClusterConfig.getNodeServerName(), ClusterConfig.getNodeServerPortSsl());
+            Thread.sleep(2000);
         } catch (Exception e) {
             logger.error("Error occurred while starting the node server @ " +
                     ClusterConfig.getNodeServerName()+ ":" + ClusterConfig.getNodeServerPortSsl() + " ...");

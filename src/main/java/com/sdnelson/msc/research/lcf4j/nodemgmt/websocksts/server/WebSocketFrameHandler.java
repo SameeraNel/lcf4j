@@ -17,6 +17,8 @@ package com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.server;
 
 import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
+import java.rmi.registry.Registry;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.sdnelson.msc.research.lcf4j.core.NodeClusterMessage;
 import com.sdnelson.msc.research.lcf4j.core.NodeData;
@@ -41,6 +43,7 @@ public class WebSocketFrameHandler extends SimpleChannelInboundHandler<WebSocket
 
     final static Logger logger = org.apache.log4j.Logger.getLogger(WebSocketFrameHandler.class);
     final String nodeName = ClusterConfig.getNodeServerName();
+    private static ConcurrentHashMap<String, String> clientNodeMap = new ConcurrentHashMap();
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, WebSocketFrame frame) throws Exception {
@@ -48,15 +51,26 @@ public class WebSocketFrameHandler extends SimpleChannelInboundHandler<WebSocket
         if (frame instanceof BinaryWebSocketFrame) {
             ByteArrayInputStream baos = new ByteArrayInputStream(ByteBufUtil.getBytes(frame.content()));
             ObjectInputStream oos = new ObjectInputStream(baos);
-            if( oos.readObject() instanceof RequestClusterMessage){
+            final Object readObject = oos.readObject();
+            if(readObject instanceof RequestClusterMessage){
                 logger.info("Cluster node request message received from Client [" + ctx.channel().id().toString()
                         + " {" +  ctx.channel().remoteAddress().toString().replace("/", "") + "} ]" );
-                ctx.writeAndFlush(WebSocketFrameUtil.getNodeDataWebSocketFrame());
-
+                RequestClusterMessage requestClusterMessage = (RequestClusterMessage) readObject;
+                clientNodeMap.put(ctx.channel().id().toString(), requestClusterMessage.getNodeData().getNodeName());
+                if(ClusterManager.resolveRequestDataMessage(requestClusterMessage)){
+                    ctx.writeAndFlush(WebSocketFrameUtil.getResponseClusterWebSocketFrame());
+                } else {
+                    ctx.writeAndFlush(WebSocketFrameUtil.getConflictClusterWebSocketFrame());
+                }
+            } else if(readObject instanceof NodeClusterMessage){
+                logger.info("Cluster node data message received from server [" + ctx.channel().remoteAddress() + "]");
+                NodeClusterMessage nodeClusterMessage = (NodeClusterMessage) readObject;
+                ClusterManager.resolveNodeDataMessage(nodeClusterMessage);
             } else {
                 String message = "unsupported message type: " + oos.readObject().getClass();
                 throw new UnsupportedOperationException(message);
             }
+
         }else {
             String message = "unsupported frame type: " + frame.getClass().getName();
             throw new UnsupportedOperationException(message);
@@ -75,6 +89,7 @@ public class WebSocketFrameHandler extends SimpleChannelInboundHandler<WebSocket
         super.channelUnregistered(ctx);
         logger.info("Client [" + ctx.channel().id().toString() +
                 " {" +  ctx.channel().remoteAddress().toString().replace("/", "") + "} ] is OFFLINE.");
+        ClusterManager.resolveUnRegistered(clientNodeMap.get( ctx.channel().id().toString()));
     }
 
     @Override
