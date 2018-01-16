@@ -70,10 +70,10 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         if (!handshaker.isHandshakeComplete()) {
             try {
                 handshaker.finishHandshake(ch, (FullHttpResponse) msg);
-                logger.info("WebSocket Client connected!");
+                logger.info("Client connected.");
                 handshakeFuture.setSuccess();
             } catch (WebSocketHandshakeException e) {
-                logger.info("WebSocket Client failed to connect");
+                logger.info("Error occurred, Client failed to connect");
                 handshakeFuture.setFailure(e);
             }
             return;

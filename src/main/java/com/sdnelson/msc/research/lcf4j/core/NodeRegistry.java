@@ -3,10 +3,7 @@ package com.sdnelson.msc.research.lcf4j.core;
 import com.sdnelson.msc.research.lcf4j.util.ClusterConfig;
 import org.apache.log4j.Logger;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -85,6 +82,39 @@ public class NodeRegistry {
 
     public static int getNodeCount(){
         return nodeDataMap.size();
+    }
+
+    public static int getActiveNodeCount(){
+        final Collection<NodeData> values = nodeDataMap.values();
+        int activeCount = 0;
+        for (NodeData nodeData : values){
+            if(NodeStatus.ACTIVE.equals(nodeData.getStatus())){
+                activeCount++;
+            }
+        }
+        return activeCount;
+    }
+
+    public static List<NodeData> getActiveNodeList(){
+        final Collection<NodeData> values = nodeDataMap.values();
+        List<NodeData> nodeDataList = new ArrayList<>();
+        for (NodeData nodeData : values){
+            if(NodeStatus.ACTIVE.equals(nodeData.getStatus())){
+                nodeDataList.add(nodeData);
+            }
+        }
+        return nodeDataList;
+    }
+
+    public static Map<String, NodeData> getActiveNodeMap(){
+        final Collection<NodeData> values = nodeDataMap.values();
+        Map<String, NodeData> nodeDataMap = new HashMap<>();
+        for (NodeData nodeData : values){
+            if(NodeStatus.ACTIVE.equals(nodeData.getStatus())){
+                nodeDataMap.put(nodeData.getNodeName(), nodeData);
+            }
+        }
+        return nodeDataMap;
     }
 
     private static void registryStats() {
