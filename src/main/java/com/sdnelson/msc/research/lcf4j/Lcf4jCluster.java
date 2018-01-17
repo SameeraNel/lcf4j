@@ -1,9 +1,15 @@
 package com.sdnelson.msc.research.lcf4j;
 
+import com.sdnelson.msc.research.lcf4j.core.NodeData;
+import com.sdnelson.msc.research.lcf4j.nodemgmt.NodeRegistry;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.client.WebSocketClient;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.server.WebSocketServer;
 import com.sdnelson.msc.research.lcf4j.util.ClusterConfig;
 import org.apache.log4j.Logger;
+
+import java.util.Calendar;
+import java.util.List;
+import java.util.Map;
 
 public class Lcf4jCluster {
 
@@ -63,5 +69,47 @@ public class Lcf4jCluster {
             System.exit(0);
         }
         logger.info("Successfully Loaded the Properties to Config ...");
+    }
+
+    /**
+     **     Return the current active node count of the cluster
+     **/
+    public int getActiveNodeCount(){
+        return NodeRegistry.getActiveNodeCount();
+    }
+
+    /**
+     **     Return the current active node list of the cluster
+     **/
+    public List<NodeData> getActiveNodeList(){
+        return NodeRegistry.getActiveNodeList();
+    }
+
+    /**
+     **     Return the current active node map of the cluster
+     **/
+    public Map<String, NodeData> getActiveNodeMap(){
+        return NodeRegistry.getActiveNodeMap();
+    }
+
+    /**
+     **     Return the last updated time of the node registry
+     **/
+    public Calendar getLastUpdatedTime(){
+        return NodeRegistry.getTimestamp();
+    }
+
+    /**
+     **     Return the local node data
+     **/
+    public NodeData getServerNodeData(){
+        return NodeRegistry.getServerNodeData();
+    }
+
+    /**
+     **     Return the current active node name list of the cluster
+     **/
+    public List<String> getActiveServerNameList(){
+        return NodeRegistry.getNodeKeyList();
     }
 }

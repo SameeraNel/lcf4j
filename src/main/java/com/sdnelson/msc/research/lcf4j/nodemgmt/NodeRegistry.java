@@ -8,7 +8,7 @@ import org.apache.log4j.Logger;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-
+//Node local registry for nodes
 public class NodeRegistry {
 
     final static org.apache.log4j.Logger logger = Logger.getLogger(NodeRegistry.class);
@@ -78,8 +78,13 @@ public class NodeRegistry {
         return nodeDataMap.get(ClusterConfig.getNodeServerName());
     }
 
-    public static ConcurrentHashMap.KeySetView<String, NodeData> getNodeKeyList(){
-        return nodeDataMap.keySet();
+    public static List<String> getNodeKeyList(){
+        List<String> ServerNameList = new ArrayList<>();
+        final ConcurrentHashMap.KeySetView<String, NodeData> strings = nodeDataMap.keySet();
+        for (String serverName : strings){
+            ServerNameList.add(serverName);
+        }
+        return ServerNameList;
     }
 
     public static int getNodeCount(){
