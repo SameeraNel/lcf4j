@@ -1,6 +1,10 @@
-package com.sdnelson.msc.research.lcf4j.nodemgmt.core;
+package com.sdnelson.msc.research.lcf4j.nodemgmt;
 
 import com.sdnelson.msc.research.lcf4j.core.*;
+import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.message.ConflictClusterMessage;
+import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.message.NodeClusterMessage;
+import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.message.RequestClusterMessage;
+import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.message.ResponseClusterMessage;
 import com.sdnelson.msc.research.lcf4j.util.ClusterConfig;
 import org.apache.log4j.Logger;
 

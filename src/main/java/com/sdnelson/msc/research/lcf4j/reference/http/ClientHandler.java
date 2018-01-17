@@ -2,7 +2,7 @@ package com.sdnelson.msc.research.lcf4j.reference.http;
 
 
 import com.sdnelson.msc.research.lcf4j.core.NodeData;
-import com.sdnelson.msc.research.lcf4j.core.NodeRegistry;
+import com.sdnelson.msc.research.lcf4j.nodemgmt.NodeRegistry;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;

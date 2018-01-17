@@ -1,4 +1,4 @@
-package com.sdnelson.msc.research.lcf4j.bootstarp;
+package com.sdnelson.msc.research.lcf4j;
 
 import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.client.WebSocketClient;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.server.WebSocketServer;

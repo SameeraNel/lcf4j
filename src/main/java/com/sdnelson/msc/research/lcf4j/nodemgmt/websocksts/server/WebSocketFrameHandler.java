@@ -2,22 +2,17 @@ package com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.server;
 
 import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
-import java.rmi.registry.Registry;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.sdnelson.msc.research.lcf4j.core.NodeClusterMessage;
-import com.sdnelson.msc.research.lcf4j.core.NodeData;
-import com.sdnelson.msc.research.lcf4j.core.NodeRegistry;
-import com.sdnelson.msc.research.lcf4j.core.RequestClusterMessage;
-import com.sdnelson.msc.research.lcf4j.nodemgmt.core.ClusterManager;
+import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.message.NodeClusterMessage;
+import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.message.RequestClusterMessage;
+import com.sdnelson.msc.research.lcf4j.nodemgmt.ClusterManager;
 import com.sdnelson.msc.research.lcf4j.util.ClusterConfig;
 import com.sdnelson.msc.research.lcf4j.util.WebSocketFrameUtil;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import org.apache.log4j.Logger;
 

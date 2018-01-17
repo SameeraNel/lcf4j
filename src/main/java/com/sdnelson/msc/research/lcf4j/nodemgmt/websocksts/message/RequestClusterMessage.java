@@ -1,10 +1,12 @@
-package com.sdnelson.msc.research.lcf4j.core;
+package com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.message;
 
+
+import com.sdnelson.msc.research.lcf4j.core.*;
 
 import java.io.Serializable;
 import java.util.Calendar;
 
-public class RequestClusterMessage implements Serializable, ClusterMessage  {
+public class RequestClusterMessage implements Serializable, ClusterMessage {
 
     private Calendar timestamp;
     private NodeData nodeData;

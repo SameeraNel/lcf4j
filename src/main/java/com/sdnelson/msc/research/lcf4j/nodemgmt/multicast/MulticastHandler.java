@@ -1,24 +1,17 @@
 package com.sdnelson.msc.research.lcf4j.nodemgmt.multicast;
 
 import com.sdnelson.msc.research.lcf4j.core.NodeData;
-import com.sdnelson.msc.research.lcf4j.core.NodeRegistry;
+import com.sdnelson.msc.research.lcf4j.nodemgmt.NodeRegistry;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.DatagramPacket;
-import io.netty.handler.codec.string.StringDecoder;
 import org.apache.log4j.Logger;
 
 import java.io.*;
 import java.net.InetSocketAddress;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.Date;
-import java.util.Random;
-import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
 
 public class MulticastHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 

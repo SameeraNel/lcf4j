@@ -1,7 +1,7 @@
 package com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.server;
 
 import com.sdnelson.msc.research.lcf4j.core.NodeData;
-import com.sdnelson.msc.research.lcf4j.core.NodeRegistry;
+import com.sdnelson.msc.research.lcf4j.nodemgmt.NodeRegistry;
 import com.sdnelson.msc.research.lcf4j.core.NodeStatus;
 import com.sdnelson.msc.research.lcf4j.util.ClusterConfig;
 import io.netty.bootstrap.ServerBootstrap;

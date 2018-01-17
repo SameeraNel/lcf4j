@@ -1,12 +1,9 @@
 package com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.client;
 
-import com.sdnelson.msc.research.lcf4j.core.ConflictClusterMessage;
-import com.sdnelson.msc.research.lcf4j.core.NodeClusterMessage;
-import com.sdnelson.msc.research.lcf4j.core.RequestClusterMessage;
-import com.sdnelson.msc.research.lcf4j.core.ResponseClusterMessage;
-import com.sdnelson.msc.research.lcf4j.nodemgmt.core.ClusterManager;
-import com.sdnelson.msc.research.lcf4j.util.WebSocketFrameUtil;
-import io.netty.bootstrap.Bootstrap;
+import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.message.ConflictClusterMessage;
+import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.message.NodeClusterMessage;
+import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.message.ResponseClusterMessage;
+import com.sdnelson.msc.research.lcf4j.nodemgmt.ClusterManager;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.FullHttpResponse;
@@ -16,7 +13,6 @@ import org.apache.log4j.Logger;
 
 import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
-import java.util.concurrent.TimeUnit;
 
 public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> {
 

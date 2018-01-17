@@ -1,5 +1,7 @@
-package com.sdnelson.msc.research.lcf4j.core;
+package com.sdnelson.msc.research.lcf4j.nodemgmt;
 
+import com.sdnelson.msc.research.lcf4j.core.NodeData;
+import com.sdnelson.msc.research.lcf4j.core.NodeStatus;
 import com.sdnelson.msc.research.lcf4j.util.ClusterConfig;
 import org.apache.log4j.Logger;
 

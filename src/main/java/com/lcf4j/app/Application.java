@@ -1,5 +1,6 @@
-package com.sdnelson.msc.research.lcf4j.bootstarp;
+package com.lcf4j.app;
 
+import com.sdnelson.msc.research.lcf4j.Lcf4jCluster;
 import org.apache.log4j.Logger;
 
 public class Application {

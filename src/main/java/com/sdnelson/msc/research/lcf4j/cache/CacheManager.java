@@ -1,4 +1,4 @@
-package com.sdnelson.msc.research.lcf4j.core;
+package com.sdnelson.msc.research.lcf4j.cache;
 
 
 //Cache Resolve

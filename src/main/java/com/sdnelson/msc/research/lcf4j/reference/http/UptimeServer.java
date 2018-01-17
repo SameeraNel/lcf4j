@@ -16,7 +16,7 @@
 package com.sdnelson.msc.research.lcf4j.reference.http;
 
 import com.sdnelson.msc.research.lcf4j.core.NodeData;
-import com.sdnelson.msc.research.lcf4j.core.NodeRegistry;
+import com.sdnelson.msc.research.lcf4j.nodemgmt.NodeRegistry;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.server.WebSocketServer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;

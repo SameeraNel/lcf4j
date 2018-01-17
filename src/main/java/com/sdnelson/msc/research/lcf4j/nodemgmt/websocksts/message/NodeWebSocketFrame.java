@@ -1,4 +1,4 @@
-package com.sdnelson.msc.research.lcf4j.core;
+package com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.message;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;

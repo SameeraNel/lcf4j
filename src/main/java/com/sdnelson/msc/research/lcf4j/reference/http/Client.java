@@ -3,7 +3,7 @@ package com.sdnelson.msc.research.lcf4j.reference.http;
 /**
  * Created by sn40157 on 11/1/17.
  */
-import com.sdnelson.msc.research.lcf4j.core.NodeRegistry;
+import com.sdnelson.msc.research.lcf4j.nodemgmt.NodeRegistry;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
