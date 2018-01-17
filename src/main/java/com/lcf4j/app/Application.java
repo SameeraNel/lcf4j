@@ -11,7 +11,6 @@ public class Application {
         Lcf4jCluster lcf4jCluster = new Lcf4jCluster();
         try {
             lcf4jCluster.startCluster();
-            lcf4jCluster.getActiveNodeCount();
         } catch (InterruptedException e) {
             logger.error("Error occurred while starting the node server");
             System.exit(0);
