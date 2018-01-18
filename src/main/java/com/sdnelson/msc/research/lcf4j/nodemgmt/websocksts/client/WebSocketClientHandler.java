@@ -1,5 +1,6 @@
 package com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.client;
 
+import com.sdnelson.msc.research.lcf4j.cache.CacheManager;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.message.ConflictClusterMessage;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.message.NodeClusterMessage;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.message.ResponseClusterMessage;
@@ -100,6 +101,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
                 ResponseClusterMessage responseClusterMessage = (ResponseClusterMessage) readObject;
                 clientHostName = responseClusterMessage.getNodeData().getNodeName();
                 ClusterManager.resolveResponseDataMessage(responseClusterMessage);
+                CacheManager.resolveResponseCacheMessage(responseClusterMessage);
             } else if(readObject instanceof ConflictClusterMessage){
                 logger.info("Cluster conflict data message received from server [" + ctx.channel().remoteAddress() + "]");
                 ConflictClusterMessage conflictClusterMessage = (ConflictClusterMessage) readObject;

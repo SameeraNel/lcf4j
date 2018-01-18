@@ -13,17 +13,10 @@ public class ClusterManager {
     final static Logger logger = Logger.getLogger(ClusterManager.class);
 
     public static void resolveNodeDataMessage(NodeClusterMessage nodeClusterMessage) {
-        for (NodeData nodeData : nodeClusterMessage.getNodeDataList()) {
-            if (!nodeData.getNodeName().equals(ClusterConfig.getNodeServerName()) &&
-                    (!NodeRegistry.contains(nodeData.getNodeName()) ||
-                    nodeData.getLastUpdated().after(NodeRegistry.getNodeData(nodeData.getNodeName()).getLastUpdated()))) {
+        final NodeData nodeData = nodeClusterMessage.getNodeData();
+        if (!nodeData.getNodeName().equals(ClusterConfig.getNodeServerName())) {
                 logger.info("[Adding node data to Registry " + nodeData + "]");
                 NodeRegistry.addActiveNode(nodeData);
-            } else{
-                logger.info("[Registry : " + NodeRegistry.getNodeData(nodeData.getNodeName()).getLastUpdated().getTime() + "  > NodeClusterMessage : "
-                        + nodeData.getLastUpdated().getTime() + "]");
-                logger.info("[Registry contains more recent data, ignoring the nodeClusterMessage...]");
-            }
         }
     }
 
@@ -32,7 +25,7 @@ public class ClusterManager {
         NodeRegistry.addActiveNode(responseClusterMessage.getNodeData());
     }
 
-    public static boolean resolveRequestDataMessage(RequestClusterMessage requestClusterMessage) {
+    public static boolean resolveRequestNodeData(RequestClusterMessage requestClusterMessage) {
         logger.info("[Adding node data to Registry " + requestClusterMessage.getNodeData() +"]");
         //Node Name conflict found
         if(ClusterConfig.getNodeServerName().equals(requestClusterMessage.getNodeData().getNodeName())){

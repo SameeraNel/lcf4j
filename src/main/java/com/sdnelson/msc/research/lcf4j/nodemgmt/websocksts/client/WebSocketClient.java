@@ -107,20 +107,18 @@ public final class WebSocketClient {
                 Channel ch = b.connect(uri.getHost(), port).sync().channel();
                 logger.info("Client Boot Sequence Completed @ " + nodeServerName + " for " + host + ":" + port );
                 handler.handshakeFuture().sync();
+                ch.writeAndFlush(WebSocketFrameUtil.getRequestClusterWebSocketFrame());
+                Thread.sleep(5000);
 
                 while (true) {
-//                    NodeRegistry.refreshLastUpdated(ClusterConfig.getNodeServerName());
-                    //Node Sync
                     if(NodeRegistry.getNodeData(nodeServerName) != null &&
                             (NodeStatus.PASSIVE.equals(NodeRegistry.getNodeData(nodeServerName).getStatus()) ||
                             NodeStatus.OFFLINE.equals(NodeRegistry.getNodeData(nodeServerName).getStatus()))){
                         break;
                     }
-                    ch.writeAndFlush(WebSocketFrameUtil.getRequestClusterWebSocketFrame());
+                    //Request for node sync/ cache and config
+                    ch.writeAndFlush(WebSocketFrameUtil.getNodeDataWebSocketFrame());
                     Thread.sleep(5000);
-
-                    //Cache Sync
-
             }
 
 //                while (true) {

@@ -1,6 +1,7 @@
 package com.sdnelson.msc.research.lcf4j.util;
 
 
+import com.sdnelson.msc.research.lcf4j.cache.CacheRegistry;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.NodeRegistry;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.message.*;
 import io.netty.buffer.ByteBuf;
@@ -14,18 +15,26 @@ import java.io.ObjectOutputStream;
 
 public class WebSocketFrameUtil {
 
+    //Contains node data of sender
     public static WebSocketFrame getNodeDataWebSocketFrame() throws IOException {
-        return getWebSocketFrame(new NodeClusterMessage(NodeRegistry.getNodeDataList()));
+        return getWebSocketFrame(
+                new NodeClusterMessage(NodeRegistry.getTimestamp(),NodeRegistry.getServerNodeData()));
     }
 
+    //Contains node data of sender
     public static WebSocketFrame getRequestClusterWebSocketFrame() throws IOException {
-        return getWebSocketFrame(new RequestClusterMessage(NodeRegistry.getServerNodeData()));
+        return getWebSocketFrame(
+                new RequestClusterMessage(NodeRegistry.getTimestamp(), CacheRegistry.getRegistryTimestamp(),
+                        NodeRegistry.getServerNodeData(), CacheRegistry.getCacheMap()));
     }
 
+    //Contains node data and the full cache data of sender
     public static WebSocketFrame getResponseClusterWebSocketFrame() throws IOException {
-        return getWebSocketFrame(new ResponseClusterMessage(NodeRegistry.getServerNodeData()));
+        return getWebSocketFrame(
+                new ResponseClusterMessage(NodeRegistry.getTimestamp(), CacheRegistry.getRegistryTimestamp(),
+                NodeRegistry.getServerNodeData(), CacheRegistry.getCacheMap()));
     }
-
+    // Name conflict found
     public static WebSocketFrame getConflictClusterWebSocketFrame() throws IOException {
         return getWebSocketFrame(new ConflictClusterMessage(NodeRegistry.getServerNodeData()));
     }

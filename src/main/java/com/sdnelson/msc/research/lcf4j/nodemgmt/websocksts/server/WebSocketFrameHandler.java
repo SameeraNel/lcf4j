@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.sdnelson.msc.research.lcf4j.cache.CacheManager;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.message.NodeClusterMessage;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.message.RequestClusterMessage;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.ClusterManager;
@@ -35,7 +36,7 @@ public class WebSocketFrameHandler extends SimpleChannelInboundHandler<WebSocket
                         + " {" +  ctx.channel().remoteAddress().toString().replace("/", "") + "} ]" );
                 RequestClusterMessage requestClusterMessage = (RequestClusterMessage) readObject;
                 clientNodeMap.put(ctx.channel().id().toString(), requestClusterMessage.getNodeData().getNodeName());
-                if(ClusterManager.resolveRequestDataMessage(requestClusterMessage)){
+                if(ClusterManager.resolveRequestNodeData(requestClusterMessage)){
                     ctx.writeAndFlush(WebSocketFrameUtil.getResponseClusterWebSocketFrame());
                 } else {
                     ctx.writeAndFlush(WebSocketFrameUtil.getConflictClusterWebSocketFrame());
@@ -44,6 +45,7 @@ public class WebSocketFrameHandler extends SimpleChannelInboundHandler<WebSocket
                 logger.info("Cluster node data message received from server [" + ctx.channel().remoteAddress() + "]");
                 NodeClusterMessage nodeClusterMessage = (NodeClusterMessage) readObject;
                 ClusterManager.resolveNodeDataMessage(nodeClusterMessage);
+                ctx.writeAndFlush(WebSocketFrameUtil.getNodeDataWebSocketFrame());
             } else {
                 String message = "unsupported message type: " + oos.readObject().getClass();
                 throw new UnsupportedOperationException(message);
