@@ -185,9 +185,9 @@ public final class WebSocketClient {
 //            }
 
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                logger.error("Connection Failed for the client @ [" + nodeServerName + "] to [" + host + ":" + port + "]");
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.error("Connection Failed for the client @ [" + nodeServerName + "] to [" + host + ":" + port + "]");
             } finally {
                 group.shutdownGracefully();
             }
@@ -205,17 +205,21 @@ public final class WebSocketClient {
             logger.info("Cache updates sent from [" +
                     ClusterConfig.getNodeServerName() + "] to [" + remoteHost + ":" + remortPort  + "].");
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Error occured while sending the message.");
         }
     }
 
     public void sendCacheEvictMessage(final CacheData cacheData){
         try {
+            if(channel == null){
+                logger.info("Skipping update send to non connected client.");
+                return;
+            }
             channel.writeAndFlush(WebSocketFrameUtil.getEvictCacheWebSocketFrame(cacheData));
             logger.info("Cache evict sent from [" +
                     ClusterConfig.getNodeServerName() + "] to [" + remoteHost + ":" + remortPort  + "].");
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Error occured while sending the message.");
         }
     }
 }
