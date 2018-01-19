@@ -1,5 +1,6 @@
 package com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.client;
 
+import com.sdnelson.msc.research.lcf4j.cache.CacheData;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.NodeRegistry;
 import com.sdnelson.msc.research.lcf4j.core.NodeStatus;
 import com.sdnelson.msc.research.lcf4j.util.ClusterConfig;
@@ -28,11 +29,14 @@ public final class WebSocketClient {
 
     final static org.apache.log4j.Logger logger = Logger.getLogger(WebSocketClient.class);
     final String URL = System.getProperty("url", "wss://127.0.0.1:8010/websocket");
-    public final String WEB_SOCKETS_SCHEME = "ws";
-    public final String LOCALHOST_ADDRESS = "127.0.0.1";
-    public final String WSSWEB_SOCKETS_SECURE_SCHEME = "wss";
-    public final String ONLY_WS_S_IS_SUPPORTED = "Only WS(S) is supported.";
-    ExecutorService serverListener;
+    private final String WEB_SOCKETS_SCHEME = "ws";
+    private final String WSSWEB_SOCKETS_SECURE_SCHEME = "wss";
+    private final String ONLY_WS_S_IS_SUPPORTED = "Only WS(S) is supported.";
+    private ExecutorService serverListener;
+    private Channel channel;
+    private ChannelFuture channelFuture;
+    private String remoteHost;
+    private int remortPort;
 
     public WebSocketClient(final int threadCount) {
         serverListener = Executors.newFixedThreadPool(threadCount);
@@ -45,6 +49,8 @@ public final class WebSocketClient {
 
     public void startClient(final String host, final int port) throws Exception {
         final String nodeServerName = ClusterConfig.getNodeServerName();
+        remoteHost = host;
+        remortPort = port;
         logger.info("Node Client is Starting @ " + nodeServerName + " for " + host + ":" + port );
         URI uri = new URI(URL);
         String scheme = uri.getScheme() == null? WEB_SOCKETS_SCHEME : uri.getScheme();
@@ -104,23 +110,21 @@ public final class WebSocketClient {
                             }
                         });
                 logger.info("Client Boot Sequence Initiated @ " + nodeServerName + " for " + host + ":" + port );
-                Channel ch = b.connect(uri.getHost(), port).sync().channel();
+                channel = b.connect(uri.getHost(), port).sync().channel();
                 logger.info("Client Boot Sequence Completed @ " + nodeServerName + " for " + host + ":" + port );
-                handler.handshakeFuture().sync();
-                ch.writeAndFlush(WebSocketFrameUtil.getRequestClusterWebSocketFrame());
+                channelFuture = handler.handshakeFuture().sync();
+                channel.writeAndFlush(WebSocketFrameUtil.getRequestClusterWebSocketFrame());
                 Thread.sleep(5000);
-
                 while (true) {
-                    if(NodeRegistry.getNodeData(nodeServerName) != null &&
-                            (NodeStatus.PASSIVE.equals(NodeRegistry.getNodeData(nodeServerName).getStatus()) ||
-                            NodeStatus.OFFLINE.equals(NodeRegistry.getNodeData(nodeServerName).getStatus()))){
+                    if (NodeRegistry.getNodeData(nodeServerName) != null &&
+                                (NodeStatus.PASSIVE.equals(NodeRegistry.getNodeData(nodeServerName).getStatus()) ||
+                                        NodeStatus.OFFLINE.equals(NodeRegistry.getNodeData(nodeServerName).getStatus()))) {
                         break;
                     }
                     //Request for node sync/ cache and config
-                    ch.writeAndFlush(WebSocketFrameUtil.getNodeDataWebSocketFrame());
+                    channel.writeAndFlush(WebSocketFrameUtil.getNodeDataWebSocketFrame());
                     Thread.sleep(5000);
-            }
-
+                }
 //                while (true) {
 //                    WebSocketFrame frame = new TextWebSocketFrame(ch.localAddress().toString());
 //                    ch.writeAndFlush(frame);
@@ -189,5 +193,29 @@ public final class WebSocketClient {
             }
         };
         serverListener.execute(runnableTask);
+    }
+
+    public void sendCacheUpdateMessage(final CacheData cacheData){
+        try {
+            if(channel == null){
+                logger.info("Skipping update send to non connected client.");
+                return;
+            }
+            channel.writeAndFlush(WebSocketFrameUtil.getUpdateCacheWebSocketFrame(cacheData));
+            logger.info("Cache updates sent from [" +
+                    ClusterConfig.getNodeServerName() + "] to [" + remoteHost + ":" + remortPort  + "].");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void sendCacheEvictMessage(final CacheData cacheData){
+        try {
+            channel.writeAndFlush(WebSocketFrameUtil.getEvictCacheWebSocketFrame(cacheData));
+            logger.info("Cache evict sent from [" +
+                    ClusterConfig.getNodeServerName() + "] to [" + remoteHost + ":" + remortPort  + "].");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

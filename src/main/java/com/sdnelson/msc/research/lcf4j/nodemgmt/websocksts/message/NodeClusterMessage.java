@@ -2,10 +2,9 @@ package com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.message;
 
 import com.sdnelson.msc.research.lcf4j.core.NodeData;
 
-import java.io.Serializable;
 import java.util.Calendar;
 
-public class NodeClusterMessage implements Serializable, ClusterMessage {
+public class NodeClusterMessage implements ClusterMessage {
 
     private Calendar timestamp;
     private NodeData nodeData;

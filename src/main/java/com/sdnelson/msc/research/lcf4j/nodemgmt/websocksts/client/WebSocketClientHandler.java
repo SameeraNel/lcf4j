@@ -1,10 +1,12 @@
 package com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.client;
 
+import com.sdnelson.msc.research.lcf4j.cache.CacheData;
 import com.sdnelson.msc.research.lcf4j.cache.CacheManager;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.message.ConflictClusterMessage;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.message.NodeClusterMessage;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.message.ResponseClusterMessage;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.ClusterManager;
+import com.sdnelson.msc.research.lcf4j.util.WebSocketFrameUtil;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.FullHttpResponse;
@@ -22,6 +24,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
     private final WebSocketClientHandshaker handshaker;
     private ChannelPromise handshakeFuture;
     private String clientHostName;
+    private static CacheData cacheData;
 
     public WebSocketClientHandler(WebSocketClientHandshaker handshaker) {
         this.handshaker = handshaker;
@@ -125,4 +128,15 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         }
         ctx.close();
     }
+
+    @Override
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+        super.userEventTriggered(ctx, evt);
+        ctx.writeAndFlush(WebSocketFrameUtil.getUpdateCacheWebSocketFrame(cacheData));
+    }
+
+    public static void sendCacheUpdate(final CacheData cuptateCacheData){
+        cacheData = cuptateCacheData;
+    }
+
 }

@@ -8,7 +8,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 
 // Holder Object for node data and cache data
-public class RequestClusterMessage implements Serializable, ClusterMessage {
+public class RequestClusterMessage implements ClusterMessage {
 
     private Calendar nodeTimestamp;
     private Calendar cacheTimestamp;

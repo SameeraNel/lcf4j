@@ -1,12 +1,14 @@
 package com.sdnelson.msc.research.lcf4j;
 
 import com.sdnelson.msc.research.lcf4j.core.NodeData;
+import com.sdnelson.msc.research.lcf4j.core.NodeStatus;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.NodeRegistry;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.client.WebSocketClient;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.server.WebSocketServer;
 import com.sdnelson.msc.research.lcf4j.util.ClusterConfig;
 import org.apache.log4j.Logger;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
@@ -15,22 +17,28 @@ public class Lcf4jCluster {
 
     final static org.apache.log4j.Logger logger = Logger.getLogger(Lcf4jCluster.class);
 
+    private static List<WebSocketClient> clientList = new ArrayList<>();
+
     public void startCluster() throws InterruptedException {
         logger.info("Initiating LCF4J Cluster Framework ...");
         initConfigProperties();
         startNodeServer();
         startNodeClients();
+        if(NodeStatus.ACTIVE.equals(NodeRegistry.getServerNodeStatus())){
+            NodeRegistry.markNodeStatus(ClusterConfig.getNodeServerName(), NodeStatus.ONLINE);
+        }
         logger.info("LCF4J Cluster Framework Started Successfully ...");
     }
 
     private void startNodeClients() {
         final int nodeCount = ClusterConfig.getClusterNodeList().size();
-        WebSocketClient webSocketClient = new WebSocketClient(nodeCount);
         try {
             for (int i = 0; i < nodeCount; i++) {
                 if(checkCurrentNode(i)){
                     continue;
                 }
+                WebSocketClient webSocketClient = new WebSocketClient(nodeCount);
+                clientList.add(webSocketClient);
                 webSocketClient.startClient(
                         ClusterConfig.getClusterNodeList().get(i).getHost(),
                         ClusterConfig.getClusterNodeList().get(i).getPort());
@@ -111,5 +119,9 @@ public class Lcf4jCluster {
      **/
     public List<String> getActiveServerNameList(){
         return NodeRegistry.getNodeKeyList();
+    }
+
+    public static List<WebSocketClient> getClientList() {
+        return clientList;
     }
 }

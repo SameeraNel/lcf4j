@@ -15,18 +15,18 @@ public class ClusterManager {
     public static void resolveNodeDataMessage(NodeClusterMessage nodeClusterMessage) {
         final NodeData nodeData = nodeClusterMessage.getNodeData();
         if (!nodeData.getNodeName().equals(ClusterConfig.getNodeServerName())) {
-                logger.info("[Adding node data to Registry " + nodeData + "]");
+                logger.info("[Adding node update data to the Registry " + nodeData + "]");
                 NodeRegistry.addActiveNode(nodeData);
         }
     }
 
     public static void resolveResponseDataMessage(ResponseClusterMessage responseClusterMessage) {
-        logger.info("[Adding node data to Registry " + responseClusterMessage.getNodeData() +"]");
+        logger.info("[Adding node data from server to the Registry " + responseClusterMessage.getNodeData() +"]");
         NodeRegistry.addActiveNode(responseClusterMessage.getNodeData());
     }
 
     public static boolean resolveRequestNodeData(RequestClusterMessage requestClusterMessage) {
-        logger.info("[Adding node data to Registry " + requestClusterMessage.getNodeData() +"]");
+        logger.info("[Adding node data from client to the Registry " + requestClusterMessage.getNodeData() +"]");
         //Node Name conflict found
         if(ClusterConfig.getNodeServerName().equals(requestClusterMessage.getNodeData().getNodeName())){
             return false;

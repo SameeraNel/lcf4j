@@ -15,28 +15,29 @@ public class CacheRegistry {
 
     private static ConcurrentHashMap<String, String> cacheMap = new ConcurrentHashMap();
 
-    public static String addToCache(String key, String value){
+    public static void addToCache(String key, String value){
+        cacheMap.put(key, value);
         updateTimestamp();
-        return cacheMap.put(key, value);
     }
 
     private static void updateTimestamp() {
-        logger.info("Cache update @ " + registryTimestamp.getTime());
         registryTimestamp = Calendar.getInstance();
+        logger.info("[ Cache Registry size :" + cacheMap.size() + "[ " + cacheMap.toString() + " ]");
+        logger.info("Cache updated @ [ " + registryTimestamp.getTime() + " ]");
     }
 
-    public static String updateCache(String key, String value){
+    public static void updateCache(String key, String value){
+        addToCache(key, value);
         updateTimestamp();
-        return addToCache(key, value);
     }
 
-    public static String evictFromCache(String key){
+    public static void evictFromCache(String key){
+        cacheMap.remove(key);
         updateTimestamp();
-        return cacheMap.remove(key);
     }
 
     public static HashMap<String, String> getCacheMap(){
-        updateTimestamp();
+        logger.info("[Cache Size : " + cacheMap.size() + "][" + cacheMap.toString() + "]");
         return new HashMap<>(cacheMap);
     }
 

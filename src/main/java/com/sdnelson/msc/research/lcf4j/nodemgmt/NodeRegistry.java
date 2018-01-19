@@ -78,6 +78,10 @@ public class NodeRegistry {
         return nodeDataMap.get(ClusterConfig.getNodeServerName());
     }
 
+    public static NodeStatus getServerNodeStatus(){
+        return nodeDataMap.get(ClusterConfig.getNodeServerName()).getStatus();
+    }
+
     public static List<String> getNodeKeyList(){
         List<String> ServerNameList = new ArrayList<>();
         final ConcurrentHashMap.KeySetView<String, NodeData> strings = nodeDataMap.keySet();
@@ -127,9 +131,9 @@ public class NodeRegistry {
     private static void registryStats() {
         timestamp = Calendar.getInstance();
         StringBuilder nodeStat = new StringBuilder();
-        nodeStat.append("[Node Count : " + NodeRegistry.getNodeCount() + "]");
+        nodeStat.append(" [Node Count : " + NodeRegistry.getNodeCount() + "]");
         nodeStat.append("[");
-        nodeDataMap.forEach((k, v) -> nodeStat.append( " {" + k + " : " + v.getStatus() +  " : " + v.getLastUpdated().getTime() + "} "));
+        nodeDataMap.forEach((k, v) -> nodeStat.append( "{" + k + " : " + v.getStatus() +  " : " + v.getLastUpdated().getTime() + "}"));
         nodeStat.append("]");
         logger.info(nodeStat.toString());
     }

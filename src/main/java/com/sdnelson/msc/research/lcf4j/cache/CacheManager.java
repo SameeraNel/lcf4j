@@ -13,9 +13,17 @@ public class CacheManager {
 
     public static void resolveResponseCacheMessage(final ResponseClusterMessage responseClusterMessage) {
         if(CacheRegistry.getCacheSize() == 0){
-            logger.info("Cache update found, Updating ...");
+            logger.info("Cache sync received : " + responseClusterMessage.getCacheMapData().toString());
             CacheRegistry.updateFullCache(responseClusterMessage.getCacheMapData());
+            logger.info("Local cache updated.");
             NodeRegistry.markNodeStatus(NodeRegistry.getServerNodeData().getNodeName(), NodeStatus.ONLINE);
+            logger.info("Node is set to ACTIVE.");
         }
+    }
+
+    public static void resolveCacheUpdateMessage(UpdateCacheMessage updateCacheMessage) {
+        logger.info("Cache update received : " + updateCacheMessage.getCacheData().toString());
+        final CacheData cacheData = updateCacheMessage.getCacheData();
+        CacheRegistry.addToCache(cacheData.getKey(), cacheData.getValue());
     }
 }

@@ -1,5 +1,6 @@
 package com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.server;
 
+import com.sdnelson.msc.research.lcf4j.cache.CacheRegistry;
 import com.sdnelson.msc.research.lcf4j.core.NodeData;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.NodeRegistry;
 import com.sdnelson.msc.research.lcf4j.core.NodeStatus;
@@ -72,6 +73,7 @@ public final class WebSocketServer {
             serverListener.execute(listeningTask2);
             while (true) {
                 NodeRegistry.refreshLastUpdated(serverName);
+                CacheRegistry.getCacheMap();
                 try {
                     Thread.sleep(4000);
                 } catch (InterruptedException e) {

@@ -5,6 +5,8 @@ import java.io.ObjectInputStream;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.sdnelson.msc.research.lcf4j.cache.CacheManager;
+import com.sdnelson.msc.research.lcf4j.cache.CacheRegistry;
+import com.sdnelson.msc.research.lcf4j.cache.UpdateCacheMessage;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.message.NodeClusterMessage;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.message.RequestClusterMessage;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.ClusterManager;
@@ -46,7 +48,11 @@ public class WebSocketFrameHandler extends SimpleChannelInboundHandler<WebSocket
                 NodeClusterMessage nodeClusterMessage = (NodeClusterMessage) readObject;
                 ClusterManager.resolveNodeDataMessage(nodeClusterMessage);
                 ctx.writeAndFlush(WebSocketFrameUtil.getNodeDataWebSocketFrame());
-            } else {
+            } else if(readObject instanceof UpdateCacheMessage) {
+                logger.info("Cache update message received from server [" + ctx.channel().remoteAddress() + "]");
+                UpdateCacheMessage updateCacheMessage = (UpdateCacheMessage) readObject;
+                CacheManager.resolveCacheUpdateMessage(updateCacheMessage);
+            }  else {
                 String message = "unsupported message type: " + oos.readObject().getClass();
                 throw new UnsupportedOperationException(message);
             }

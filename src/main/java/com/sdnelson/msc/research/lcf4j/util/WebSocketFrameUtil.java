@@ -1,7 +1,10 @@
 package com.sdnelson.msc.research.lcf4j.util;
 
 
+import com.sdnelson.msc.research.lcf4j.cache.CacheData;
 import com.sdnelson.msc.research.lcf4j.cache.CacheRegistry;
+import com.sdnelson.msc.research.lcf4j.cache.EvictCacheMessage;
+import com.sdnelson.msc.research.lcf4j.cache.UpdateCacheMessage;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.NodeRegistry;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.message.*;
 import io.netty.buffer.ByteBuf;
@@ -14,6 +17,16 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 
 public class WebSocketFrameUtil {
+
+    public static WebSocketFrame getUpdateCacheWebSocketFrame(final CacheData cacheData) throws IOException {
+        return getWebSocketFrame(
+                new UpdateCacheMessage(CacheRegistry.getRegistryTimestamp(), cacheData));
+    }
+
+    public static WebSocketFrame getEvictCacheWebSocketFrame(final CacheData cacheData) throws IOException {
+        return getWebSocketFrame(
+                new EvictCacheMessage(CacheRegistry.getRegistryTimestamp(), cacheData));
+    }
 
     //Contains node data of sender
     public static WebSocketFrame getNodeDataWebSocketFrame() throws IOException {
@@ -36,10 +49,11 @@ public class WebSocketFrameUtil {
     }
     // Name conflict found
     public static WebSocketFrame getConflictClusterWebSocketFrame() throws IOException {
-        return getWebSocketFrame(new ConflictClusterMessage(NodeRegistry.getServerNodeData()));
+        return getWebSocketFrame(
+                new ConflictClusterMessage(NodeRegistry.getTimestamp(),NodeRegistry.getServerNodeData()));
     }
 
-    private static WebSocketFrame getWebSocketFrame(ClusterMessage clusterMessage) throws IOException {
+    private static WebSocketFrame getWebSocketFrame(final ClusterMessage clusterMessage) throws IOException {
         ByteBuf buf = Unpooled.buffer();
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(baos);
