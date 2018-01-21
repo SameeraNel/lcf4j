@@ -16,14 +16,18 @@ public class CacheManager {
             logger.info("Cache sync received : " + responseClusterMessage.getCacheMapData().toString());
             CacheRegistry.updateFullCache(responseClusterMessage.getCacheMapData());
             logger.info("Local cache updated.");
-            NodeRegistry.markNodeStatus(NodeRegistry.getServerNodeData().getNodeName(), NodeStatus.ONLINE);
-            logger.info("Node is set to ACTIVE.");
         }
     }
 
     public static void resolveCacheUpdateMessage(UpdateCacheMessage updateCacheMessage) {
-        logger.info("Cache update received : " + updateCacheMessage.getCacheData().toString());
         final CacheData cacheData = updateCacheMessage.getCacheData();
         CacheRegistry.addToCache(cacheData.getKey(), cacheData.getValue());
+        logger.info("Cache updated : " + cacheData.toString());
+    }
+
+    public static void resolveCacheEvictMessage(EvictCacheMessage evictCacheMessage) {
+        final CacheData cacheData = evictCacheMessage.getCacheData();
+        CacheRegistry.evictFromCache(cacheData.getKey());
+        logger.info("Cache evicted : " + cacheData.toString());
     }
 }

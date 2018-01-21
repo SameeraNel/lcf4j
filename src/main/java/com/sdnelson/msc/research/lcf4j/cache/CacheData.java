@@ -39,4 +39,13 @@ public class CacheData implements Serializable {
     public void setValue(String value) {
         this.value = value;
     }
+
+    @Override
+    public String toString() {
+        return "CacheData{" +
+                "timestamp=" + timestamp +
+                ", key='" + key + '\'' +
+                ", value='" + value + '\'' +
+                '}';
+    }
 }

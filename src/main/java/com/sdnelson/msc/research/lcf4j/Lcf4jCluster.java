@@ -27,6 +27,7 @@ public class Lcf4jCluster {
         if(NodeStatus.ACTIVE.equals(NodeRegistry.getServerNodeStatus())){
             NodeRegistry.markNodeStatus(ClusterConfig.getNodeServerName(), NodeStatus.ONLINE);
         }
+        Thread.sleep(2000);
         logger.info("LCF4J Cluster Framework Started Successfully ...");
     }
 

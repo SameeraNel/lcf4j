@@ -5,6 +5,9 @@ import com.sdnelson.msc.research.lcf4j.cache.CacheData;
 import com.sdnelson.msc.research.lcf4j.cache.CacheRegistry;
 import com.sdnelson.msc.research.lcf4j.cache.EvictCacheMessage;
 import com.sdnelson.msc.research.lcf4j.cache.UpdateCacheMessage;
+import com.sdnelson.msc.research.lcf4j.config.ConfigData;
+import com.sdnelson.msc.research.lcf4j.config.ConfigMessage;
+import com.sdnelson.msc.research.lcf4j.config.ConfigRegistry;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.NodeRegistry;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.message.*;
 import io.netty.buffer.ByteBuf;
@@ -37,16 +40,21 @@ public class WebSocketFrameUtil {
     //Contains node data of sender
     public static WebSocketFrame getRequestClusterWebSocketFrame() throws IOException {
         return getWebSocketFrame(
-                new RequestClusterMessage(NodeRegistry.getTimestamp(), CacheRegistry.getRegistryTimestamp(),
-                        NodeRegistry.getServerNodeData(), CacheRegistry.getCacheMap()));
+                new RequestClusterMessage(
+                        NodeRegistry.getTimestamp(), NodeRegistry.getServerNodeData(),
+                        CacheRegistry.getRegistryTimestamp(),CacheRegistry.getCacheMap(),
+                        ConfigRegistry.getRegistryTimestamp(),  ConfigRegistry.getServerConfigData()));
     }
 
     //Contains node data and the full cache data of sender
     public static WebSocketFrame getResponseClusterWebSocketFrame() throws IOException {
         return getWebSocketFrame(
-                new ResponseClusterMessage(NodeRegistry.getTimestamp(), CacheRegistry.getRegistryTimestamp(),
-                NodeRegistry.getServerNodeData(), CacheRegistry.getCacheMap()));
+                new ResponseClusterMessage(
+                        NodeRegistry.getTimestamp(), NodeRegistry.getServerNodeData(),
+                        CacheRegistry.getRegistryTimestamp(), CacheRegistry.getCacheMap(),
+                        ConfigRegistry.getRegistryTimestamp(), ConfigRegistry.getServerConfigData()));
     }
+
     // Name conflict found
     public static WebSocketFrame getConflictClusterWebSocketFrame() throws IOException {
         return getWebSocketFrame(
@@ -61,5 +69,10 @@ public class WebSocketFrameUtil {
         oos.flush();
         buf.writeBytes(baos.toByteArray());
         return new BinaryWebSocketFrame(buf);
+    }
+
+    public static WebSocketFrame getConfigWebSocketFrame(ConfigData configData) throws IOException {
+        return getWebSocketFrame(
+                new ConfigMessage(ConfigRegistry.getRegistryTimestamp(), configData));
     }
 }

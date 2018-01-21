@@ -1,6 +1,7 @@
 package com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.client;
 
 import com.sdnelson.msc.research.lcf4j.cache.CacheData;
+import com.sdnelson.msc.research.lcf4j.config.ConfigData;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.NodeRegistry;
 import com.sdnelson.msc.research.lcf4j.core.NodeStatus;
 import com.sdnelson.msc.research.lcf4j.util.ClusterConfig;
@@ -113,17 +114,18 @@ public final class WebSocketClient {
                 channel = b.connect(uri.getHost(), port).sync().channel();
                 logger.info("Client Boot Sequence Completed @ " + nodeServerName + " for " + host + ":" + port );
                 channelFuture = handler.handshakeFuture().sync();
+                //Only NodeData is sent, nodeCache & configData is empty
                 channel.writeAndFlush(WebSocketFrameUtil.getRequestClusterWebSocketFrame());
-                Thread.sleep(5000);
+                Thread.sleep(200);
                 while (true) {
                     if (NodeRegistry.getNodeData(nodeServerName) != null &&
                                 (NodeStatus.PASSIVE.equals(NodeRegistry.getNodeData(nodeServerName).getStatus()) ||
                                         NodeStatus.OFFLINE.equals(NodeRegistry.getNodeData(nodeServerName).getStatus()))) {
                         break;
                     }
-                    //Request for node sync/ cache and config
+                    //Request for node sync, cache and config are synced from the on the fly messages
                     channel.writeAndFlush(WebSocketFrameUtil.getNodeDataWebSocketFrame());
-                    Thread.sleep(5000);
+                    Thread.sleep(2000);
                 }
 //                while (true) {
 //                    WebSocketFrame frame = new TextWebSocketFrame(ch.localAddress().toString());
@@ -198,14 +200,14 @@ public final class WebSocketClient {
     public void sendCacheUpdateMessage(final CacheData cacheData){
         try {
             if(channel == null){
-                logger.info("Skipping update send to non connected client.");
+                logger.info("Skipping cache update send to non connected client.");
                 return;
             }
             channel.writeAndFlush(WebSocketFrameUtil.getUpdateCacheWebSocketFrame(cacheData));
             logger.info("Cache updates sent from [" +
                     ClusterConfig.getNodeServerName() + "] to [" + remoteHost + ":" + remortPort  + "].");
         } catch (IOException e) {
-            logger.error("Error occured while sending the message.");
+            logger.error("Error occurred while sending the message.");
         }
     }
 
@@ -220,6 +222,20 @@ public final class WebSocketClient {
                     ClusterConfig.getNodeServerName() + "] to [" + remoteHost + ":" + remortPort  + "].");
         } catch (IOException e) {
             logger.error("Error occured while sending the message.");
+        }
+    }
+
+    public void sendConfigUpdateMessage(final ConfigData configData){
+        try {
+            if(channel == null){
+                logger.info("Skipping config update send to non connected client.");
+                return;
+            }
+            channel.writeAndFlush(WebSocketFrameUtil.getConfigWebSocketFrame(configData));
+            logger.info("Config update [" + configData.toString() + "] sent from [" +
+                    ClusterConfig.getNodeServerName() + "] to [" + remoteHost + ":" + remortPort  + "].");
+        } catch (IOException e) {
+            logger.error("Error occurred while sending the message.");
         }
     }
 }

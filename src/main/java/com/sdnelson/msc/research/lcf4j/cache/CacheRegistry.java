@@ -5,6 +5,7 @@ import org.apache.log4j.Logger;
 
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class CacheRegistry {
@@ -49,7 +50,11 @@ public class CacheRegistry {
         return cacheMap.size();
     }
 
-    public static void updateFullCache(HashMap<String, String> cacheMapData) {
+    public static void updateFullCache(Map<String, String> cacheMapData) {
         cacheMap.putAll(cacheMapData);
+    }
+
+    public static String getCacheData(String key) {
+        return cacheMap.get(key);
     }
 }

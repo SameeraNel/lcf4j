@@ -2,6 +2,7 @@ package com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.client;
 
 import com.sdnelson.msc.research.lcf4j.cache.CacheData;
 import com.sdnelson.msc.research.lcf4j.cache.CacheManager;
+import com.sdnelson.msc.research.lcf4j.config.ConfigManager;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.message.ConflictClusterMessage;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.message.NodeClusterMessage;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.message.ResponseClusterMessage;
@@ -70,10 +71,10 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         if (!handshaker.isHandshakeComplete()) {
             try {
                 handshaker.finishHandshake(ch, (FullHttpResponse) msg);
-                logger.info("Client connected.");
+                logger.debug("Client connected.");
                 handshakeFuture.setSuccess();
             } catch (WebSocketHandshakeException e) {
-                logger.info("Error occurred, Client failed to connect");
+                logger.debug("Error occurred, Client failed to connect");
                 handshakeFuture.setFailure(e);
             }
             return;
@@ -89,35 +90,48 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         WebSocketFrame frame = (WebSocketFrame) msg;
         if (frame instanceof TextWebSocketFrame) {
             TextWebSocketFrame textFrame = (TextWebSocketFrame) frame;
-            logger.info("Client received message: " + textFrame.text());
+            logger.debug("Client received message: " + textFrame.text());
         } else if (frame instanceof BinaryWebSocketFrame) {
             ByteArrayInputStream baos = new ByteArrayInputStream(ByteBufUtil.getBytes(frame.content()));
             ObjectInputStream oos = new ObjectInputStream(baos);
             final Object readObject = oos.readObject();
 
             if(readObject instanceof NodeClusterMessage){
-                logger.info("Cluster node data message received from server [" + ctx.channel().remoteAddress() + "]");
-                NodeClusterMessage nodeClusterMessage = (NodeClusterMessage) readObject;
-                ClusterManager.resolveNodeDataMessage(nodeClusterMessage);
+                handleNodeMessage(ctx, (NodeClusterMessage) readObject);
             } else if(readObject instanceof ResponseClusterMessage){
-                logger.info("Cluster response data message received from server [" + ctx.channel().remoteAddress() + "]");
-                ResponseClusterMessage responseClusterMessage = (ResponseClusterMessage) readObject;
-                clientHostName = responseClusterMessage.getNodeData().getNodeName();
-                ClusterManager.resolveResponseDataMessage(responseClusterMessage);
-                CacheManager.resolveResponseCacheMessage(responseClusterMessage);
+                handleResponseMessage(ctx, (ResponseClusterMessage) readObject);
             } else if(readObject instanceof ConflictClusterMessage){
-                logger.info("Cluster conflict data message received from server [" + ctx.channel().remoteAddress() + "]");
-                ConflictClusterMessage conflictClusterMessage = (ConflictClusterMessage) readObject;
-                clientHostName = conflictClusterMessage.getNodeData().getNodeName();
-                ClusterManager.resolveConflictDataMessage(conflictClusterMessage);
+                handleConflictMessage(ctx, (ConflictClusterMessage) readObject);
             //    ctx.fireChannelUnregistered();
             }
         } else if (frame instanceof PongWebSocketFrame) {
-            logger.info("WebSocket Client received pong");
+            logger.debug("WebSocket Client received pong");
         } else if (frame instanceof CloseWebSocketFrame) {
-            logger.info("WebSocket Client received closing");
+            logger.debug("WebSocket Client received closing");
             ch.close();
         }
+    }
+
+    private void handleConflictMessage(ChannelHandlerContext ctx, ConflictClusterMessage readObject) {
+        logger.debug("Cluster conflict data message received from server [" + ctx.channel().remoteAddress() + "]");
+        ConflictClusterMessage conflictClusterMessage = readObject;
+        clientHostName = conflictClusterMessage.getNodeData().getNodeName();
+        ClusterManager.resolveConflictDataMessage(conflictClusterMessage);
+    }
+
+    private void handleResponseMessage(ChannelHandlerContext ctx, ResponseClusterMessage readObject) {
+        logger.debug("Cluster response data message received from server [" + ctx.channel().remoteAddress() + "]");
+        ResponseClusterMessage responseClusterMessage = readObject;
+        clientHostName = responseClusterMessage.getNodeData().getNodeName();
+        ClusterManager.resolveResponseDataMessage(responseClusterMessage);
+        CacheManager.resolveResponseCacheMessage(responseClusterMessage);
+        ConfigManager.resolveResponseConfigMessage(responseClusterMessage);
+    }
+
+    private void handleNodeMessage(ChannelHandlerContext ctx, NodeClusterMessage readObject) {
+        logger.debug("Cluster node data message received from server [" + ctx.channel().remoteAddress() + "]");
+        NodeClusterMessage nodeClusterMessage = readObject;
+        ClusterManager.resolveNodeDataMessage(nodeClusterMessage);
     }
 
     @Override
@@ -134,9 +148,4 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         super.userEventTriggered(ctx, evt);
         ctx.writeAndFlush(WebSocketFrameUtil.getUpdateCacheWebSocketFrame(cacheData));
     }
-
-    public static void sendCacheUpdate(final CacheData cuptateCacheData){
-        cacheData = cuptateCacheData;
-    }
-
 }

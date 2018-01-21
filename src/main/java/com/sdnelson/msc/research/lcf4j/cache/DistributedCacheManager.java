@@ -4,6 +4,7 @@ import com.sdnelson.msc.research.lcf4j.Lcf4jCluster;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.client.WebSocketClient;
 import org.apache.log4j.Logger;
 
+import java.util.HashMap;
 import java.util.List;
 
 // For Cache related operations, add, update, delete to cacheRegistry
@@ -40,5 +41,16 @@ public class DistributedCacheManager {
             webSocketClient.sendCacheEvictMessage(new CacheData(key, null));
         }
         logger.info("Local cache data evicted and distributed successfully.");
+    }public static HashMap<String, String> getFullCache(){
+        return CacheRegistry.getCacheMap();
+    }
+
+    public static String getCacheData(String key){
+        return CacheRegistry.getCacheData(key);
+    }
+
+
+    public static int getCacheSize() {
+        return CacheRegistry.getCacheSize();
     }
 }
