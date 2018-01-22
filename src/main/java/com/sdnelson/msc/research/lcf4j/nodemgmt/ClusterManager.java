@@ -15,18 +15,18 @@ public class ClusterManager {
     public static void resolveNodeDataMessage(NodeClusterMessage nodeClusterMessage) {
         final NodeData nodeData = nodeClusterMessage.getNodeData();
         if (!nodeData.getNodeName().equals(ClusterConfig.getNodeServerName())) {
-                logger.info("[Adding node update data to the Registry " + nodeData + "]");
+                logger.debug("[Adding node update data to the Registry " + nodeData + "]");
                 NodeRegistry.addActiveNode(nodeData);
         }
     }
 
     public static void resolveResponseDataMessage(ResponseClusterMessage responseClusterMessage) {
-        logger.info("[Adding node data from server to the Registry " + responseClusterMessage.getNodeData() +"]");
+        logger.debug("[Adding node data from server to the Registry " + responseClusterMessage.getNodeData() +"]");
         NodeRegistry.addActiveNode(responseClusterMessage.getNodeData());
     }
 
     public static boolean resolveRequestNodeData(RequestClusterMessage requestClusterMessage) {
-        logger.info("[Adding node data from client to the Registry " + requestClusterMessage.getNodeData() +"]");
+        logger.debug("[Adding node data from client to the Registry " + requestClusterMessage.getNodeData() +"]");
         //Node Name conflict found
         if(ClusterConfig.getNodeServerName().equals(requestClusterMessage.getNodeData().getNodeName())){
             return false;
@@ -39,11 +39,11 @@ public class ClusterManager {
     public static void resolveConflictDataMessage(ConflictClusterMessage conflictClusterMessage) {
         NodeData localNode = NodeRegistry.getServerNodeData();
         NodeData foreignNode = conflictClusterMessage.getNodeData();
-        logger.info("[Resolving node data received : " + foreignNode +"]");
-        logger.info("[Resolving node data local : " + localNode + "]");
+        logger.debug("[Resolving node data received : " + foreignNode +"]");
+        logger.debug("[Resolving node data local : " + localNode + "]");
         //Check for same node client connected to the server
         if(!localNode.equals(foreignNode)){
-            logger.info("[Conflict found for the node : " + localNode.getNodeName() + ", marking as PASSIVE.");
+            logger.debug("[Conflict found for the node : " + localNode.getNodeName() + ", marking as PASSIVE.");
             NodeRegistry.markNodeStatus(localNode.getNodeName(), NodeStatus.PASSIVE);
         }
     }

@@ -19,8 +19,7 @@ public class NodeRegistry {
 
     public static NodeData addActiveNode(NodeData nodeData){
         nodeDataMap.put(nodeData.getNodeName(), nodeData);
-        logger.info("[Node updated : " + nodeData.getNodeName() + "]");
-        registryStats();
+        logger.debug("[Node updated : " + nodeData.getNodeName() + "]");
         return nodeData;
     }
 

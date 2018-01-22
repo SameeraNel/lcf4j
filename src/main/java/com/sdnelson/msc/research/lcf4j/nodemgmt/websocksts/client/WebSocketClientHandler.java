@@ -2,7 +2,10 @@ package com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.client;
 
 import com.sdnelson.msc.research.lcf4j.cache.CacheData;
 import com.sdnelson.msc.research.lcf4j.cache.CacheManager;
+import com.sdnelson.msc.research.lcf4j.cache.EvictCacheMessage;
+import com.sdnelson.msc.research.lcf4j.cache.UpdateCacheMessage;
 import com.sdnelson.msc.research.lcf4j.config.ConfigManager;
+import com.sdnelson.msc.research.lcf4j.config.ConfigMessage;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.message.ConflictClusterMessage;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.message.NodeClusterMessage;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.message.ResponseClusterMessage;
@@ -10,9 +13,12 @@ import com.sdnelson.msc.research.lcf4j.nodemgmt.ClusterManager;
 import com.sdnelson.msc.research.lcf4j.util.WebSocketFrameUtil;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.*;
+import io.netty.channel.group.ChannelGroup;
+import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.websocketx.*;
 import io.netty.util.CharsetUtil;
+import io.netty.util.concurrent.GlobalEventExecutor;
 import org.apache.log4j.Logger;
 
 import java.io.ByteArrayInputStream;
@@ -26,6 +32,8 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
     private ChannelPromise handshakeFuture;
     private String clientHostName;
     private static CacheData cacheData;
+    private static ChannelGroup ServerChannelGroup = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
+
 
     public WebSocketClientHandler(WebSocketClientHandshaker handshaker) {
         this.handshaker = handshaker;
@@ -71,6 +79,8 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         if (!handshaker.isHandshakeComplete()) {
             try {
                 handshaker.finishHandshake(ch, (FullHttpResponse) msg);
+                ServerChannelGroup.add(ctx.channel());
+
                 logger.debug("Client connected.");
                 handshakeFuture.setSuccess();
             } catch (WebSocketHandshakeException e) {
@@ -103,13 +113,35 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
             } else if(readObject instanceof ConflictClusterMessage){
                 handleConflictMessage(ctx, (ConflictClusterMessage) readObject);
             //    ctx.fireChannelUnregistered();
+            }  else if(readObject instanceof UpdateCacheMessage) {
+                handleUpdateCache(ctx, (UpdateCacheMessage) readObject);
+            } else if(readObject instanceof EvictCacheMessage) {
+                handleEvictCache(ctx, (EvictCacheMessage) readObject);
+            }else if(readObject instanceof ConfigMessage) {
+                handleConfigMessage(ctx, (ConfigMessage) readObject);
+            } else {
+                String message = "unsupported message type: " + oos.readObject().getClass();
+                throw new UnsupportedOperationException(message);
             }
-        } else if (frame instanceof PongWebSocketFrame) {
-            logger.debug("WebSocket Client received pong");
-        } else if (frame instanceof CloseWebSocketFrame) {
-            logger.debug("WebSocket Client received closing");
-            ch.close();
+        }else {
+            String message = "unsupported frame type: " + frame.getClass().getName();
+            throw new UnsupportedOperationException(message);
         }
+    }
+
+    private void handleConfigMessage(ChannelHandlerContext ctx, ConfigMessage configMessage) {
+        logger.debug("New config version message received from server [" + ctx.channel().remoteAddress() + "]");
+        ConfigManager.resolveConfigMessage(configMessage);
+    }
+
+    private void handleUpdateCache(ChannelHandlerContext ctx, UpdateCacheMessage updateCacheMessage) {
+        logger.debug("Cache update message received from server [" + ctx.channel().remoteAddress() + "]");
+        CacheManager.resolveCacheUpdateMessage(updateCacheMessage);
+    }
+
+    private void handleEvictCache(ChannelHandlerContext ctx, EvictCacheMessage evictCacheMessage) {
+        logger.debug("Cache evict message received from server [" + ctx.channel().remoteAddress() + "]");
+        CacheManager.resolveCacheEvictMessage(evictCacheMessage);
     }
 
     private void handleConflictMessage(ChannelHandlerContext ctx, ConflictClusterMessage readObject) {
@@ -147,5 +179,9 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         super.userEventTriggered(ctx, evt);
         ctx.writeAndFlush(WebSocketFrameUtil.getUpdateCacheWebSocketFrame(cacheData));
+    }
+
+    public static ChannelGroup getServerChannelGroup() {
+        return ServerChannelGroup;
     }
 }

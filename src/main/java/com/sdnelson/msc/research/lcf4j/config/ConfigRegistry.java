@@ -36,14 +36,7 @@ public class ConfigRegistry {
     }
 
     public static Map<Integer, ConfigData> getServerConfigData(){
-        final HashMap<Integer, ConfigData> configDataMap = new HashMap<>();
-        configMap.values().stream().filter(
-                configData ->
-                        ClusterConfig.getNodeServerName().equals(configData.getNodeName())).forEach(
-                configData -> {
-            configDataMap.put(configData.getConfigVersion(), configData);
-        });
-        return configDataMap;
+        return new HashMap<>(configMap);
     }
 
     public static Calendar getRegistryTimestamp() {

@@ -7,6 +7,7 @@ import org.apache.log4j.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 
 public class Application {
@@ -20,13 +21,20 @@ public class Application {
         try {
             lcf4jCluster.startCluster();
             Map<String, String> configMap = new HashMap<>();
-            while(true) {
-                Thread.sleep(5000);
-                lcf4jCache.addToCache(UUID.randomUUID().toString().split("-")[2], UUID.randomUUID().toString().split("-")[1]);
-                configMap.put(UUID.randomUUID().toString().split("-")[2], UUID.randomUUID().toString().split("-")[1]);
-                lcf4jConfig.addNewConfigVersion(configMap);
+            int i = 100;
+            while(i < 200) {
+                if(i % 3 == 0){
+                    lcf4jCache.addToCache(UUID.randomUUID().toString().split("-")[2], UUID.randomUUID().toString().split("-")[1]);
+
+                }
+                if(i % 7 == 0) {
+                    configMap.put(UUID.randomUUID().toString().split("-")[2], UUID.randomUUID().toString().split("-")[1]);
+                    lcf4jConfig.addNewConfigVersion(configMap);
+                }
+                i++;
                 logger.info("Cache size : " + lcf4jCache.getCacheSize());
                 logger.info("Config size : " + lcf4jConfig.getConfigSize());
+                Thread.sleep(i);
             }
         } catch (InterruptedException e) {
             logger.error("Error occurred while starting the node server");

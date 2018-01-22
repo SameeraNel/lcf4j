@@ -27,11 +27,6 @@ public class CacheRegistry {
         logger.info("Cache updated @ [ " + registryTimestamp.getTime() + " ]");
     }
 
-    public static void updateCache(String key, String value){
-        addToCache(key, value);
-        updateTimestamp();
-    }
-
     public static void evictFromCache(String key){
         cacheMap.remove(key);
         updateTimestamp();

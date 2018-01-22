@@ -116,7 +116,6 @@ public final class WebSocketClient {
                 channelFuture = handler.handshakeFuture().sync();
                 //Only NodeData is sent, nodeCache & configData is empty
                 channel.writeAndFlush(WebSocketFrameUtil.getRequestClusterWebSocketFrame());
-                Thread.sleep(200);
                 while (true) {
                     if (NodeRegistry.getNodeData(nodeServerName) != null &&
                                 (NodeStatus.PASSIVE.equals(NodeRegistry.getNodeData(nodeServerName).getStatus()) ||
@@ -125,7 +124,7 @@ public final class WebSocketClient {
                     }
                     //Request for node sync, cache and config are synced from the on the fly messages
                     channel.writeAndFlush(WebSocketFrameUtil.getNodeDataWebSocketFrame());
-                    Thread.sleep(2000);
+                    Thread.sleep(1000);
                 }
 //                while (true) {
 //                    WebSocketFrame frame = new TextWebSocketFrame(ch.localAddress().toString());
@@ -195,47 +194,5 @@ public final class WebSocketClient {
             }
         };
         serverListener.execute(runnableTask);
-    }
-
-    public void sendCacheUpdateMessage(final CacheData cacheData){
-        try {
-            if(channel == null){
-                logger.info("Skipping cache update send to non connected client.");
-                return;
-            }
-            channel.writeAndFlush(WebSocketFrameUtil.getUpdateCacheWebSocketFrame(cacheData));
-            logger.info("Cache updates sent from [" +
-                    ClusterConfig.getNodeServerName() + "] to [" + remoteHost + ":" + remortPort  + "].");
-        } catch (IOException e) {
-            logger.error("Error occurred while sending the message.");
-        }
-    }
-
-    public void sendCacheEvictMessage(final CacheData cacheData){
-        try {
-            if(channel == null){
-                logger.info("Skipping update send to non connected client.");
-                return;
-            }
-            channel.writeAndFlush(WebSocketFrameUtil.getEvictCacheWebSocketFrame(cacheData));
-            logger.info("Cache evict sent from [" +
-                    ClusterConfig.getNodeServerName() + "] to [" + remoteHost + ":" + remortPort  + "].");
-        } catch (IOException e) {
-            logger.error("Error occured while sending the message.");
-        }
-    }
-
-    public void sendConfigUpdateMessage(final ConfigData configData){
-        try {
-            if(channel == null){
-                logger.info("Skipping config update send to non connected client.");
-                return;
-            }
-            channel.writeAndFlush(WebSocketFrameUtil.getConfigWebSocketFrame(configData));
-            logger.info("Config update [" + configData.toString() + "] sent from [" +
-                    ClusterConfig.getNodeServerName() + "] to [" + remoteHost + ":" + remortPort  + "].");
-        } catch (IOException e) {
-            logger.error("Error occurred while sending the message.");
-        }
     }
 }

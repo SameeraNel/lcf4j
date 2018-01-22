@@ -18,16 +18,19 @@ import com.sdnelson.msc.research.lcf4j.util.WebSocketFrameUtil;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.group.ChannelGroup;
+import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
+import io.netty.util.concurrent.GlobalEventExecutor;
 import org.apache.log4j.Logger;
 
 
 public class WebSocketFrameHandler extends SimpleChannelInboundHandler<WebSocketFrame> {
 
     final static Logger logger = org.apache.log4j.Logger.getLogger(WebSocketFrameHandler.class);
-    final String nodeName = ClusterConfig.getNodeServerName();
     private static ConcurrentHashMap<String, String> clientNodeMap = new ConcurrentHashMap();
+    private static ChannelGroup recipients = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, WebSocketFrame frame) throws Exception {
@@ -44,8 +47,6 @@ public class WebSocketFrameHandler extends SimpleChannelInboundHandler<WebSocket
                 handleUpdateCache(ctx, (UpdateCacheMessage) readObject);
             } else if(readObject instanceof EvictCacheMessage) {
                 handleEvictCache(ctx, (EvictCacheMessage) readObject);
-            } else if(readObject instanceof EvictCacheMessage) {
-                handleEvictCache(ctx, (EvictCacheMessage) readObject);
             } else if(readObject instanceof ConfigMessage) {
                 handleConfigMessage(ctx, (ConfigMessage) readObject);
             } else {
@@ -60,19 +61,20 @@ public class WebSocketFrameHandler extends SimpleChannelInboundHandler<WebSocket
     }
 
     private void handleConfigMessage(ChannelHandlerContext ctx, ConfigMessage configMessage) {
-        logger.debug("New config version message received from the server [" + ctx.channel().remoteAddress() + "]");
+        logger.debug("New config version message received from the client [" + ctx.channel().remoteAddress() + "]");
         ConfigManager.resolveConfigMessage(configMessage);
     }
 
     private void handleEvictCache(ChannelHandlerContext ctx, EvictCacheMessage evictCacheMessage) {
-        logger.debug("Cache evict message received from the server [" + ctx.channel().remoteAddress() + "]");
+        logger.debug("Cache evict message received from the client [" + ctx.channel().remoteAddress() + "]");
         CacheManager.resolveCacheEvictMessage(evictCacheMessage);
     }
 
     private void handleRequestCluster(ChannelHandlerContext ctx, RequestClusterMessage requestClusterMessage) throws IOException {
-        logger.debug("Cluster node request message received from the Client [" + ctx.channel().id().toString()
+        logger.debug("Cluster node request message received from client [" + ctx.channel().id().toString()
                 + " {" +  ctx.channel().remoteAddress().toString().replace("/", "") + "} ]" );
         clientNodeMap.put(ctx.channel().id().toString(), requestClusterMessage.getNodeData().getNodeName());
+        recipients.add(ctx.channel());
         if(ClusterManager.resolveRequestNodeData(requestClusterMessage)){
             ctx.writeAndFlush(WebSocketFrameUtil.getResponseClusterWebSocketFrame());
         } else {
@@ -81,13 +83,13 @@ public class WebSocketFrameHandler extends SimpleChannelInboundHandler<WebSocket
     }
 
     private void handleNodeCluster(ChannelHandlerContext ctx, NodeClusterMessage nodeClusterMessage) throws IOException {
-        logger.debug("Cluster node data message received from server [" + ctx.channel().remoteAddress() + "]");
+        logger.debug("Cluster node data message received from client [" + ctx.channel().remoteAddress() + "]");
         ClusterManager.resolveNodeDataMessage(nodeClusterMessage);
         ctx.writeAndFlush(WebSocketFrameUtil.getNodeDataWebSocketFrame());
     }
 
     private void handleUpdateCache(ChannelHandlerContext ctx, UpdateCacheMessage updateCacheMessage) {
-        logger.debug("Cache update message received from server [" + ctx.channel().remoteAddress() + "]");
+        logger.debug("Cache update message received from client [" + ctx.channel().remoteAddress() + "]");
         CacheManager.resolveCacheUpdateMessage(updateCacheMessage);
     }
 
@@ -119,5 +121,9 @@ public class WebSocketFrameHandler extends SimpleChannelInboundHandler<WebSocket
         super.channelInactive(ctx);
         logger.debug("Client [" + ctx.channel().id().toString() +
                 " {" +  ctx.channel().remoteAddress().toString().replace("/", "") + "} ] is INACTIVE.");
+    }
+
+    public static ChannelGroup getRecipients() {
+        return recipients;
     }
 }
