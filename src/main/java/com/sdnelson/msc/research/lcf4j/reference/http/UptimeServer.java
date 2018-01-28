@@ -18,6 +18,7 @@ package com.sdnelson.msc.research.lcf4j.reference.http;
 import com.sdnelson.msc.research.lcf4j.core.NodeData;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.NodeRegistry;
 import com.sdnelson.msc.research.lcf4j.nodemgmt.websocksts.server.WebSocketServer;
+import com.sdnelson.msc.research.lcf4j.util.ClusterConfig;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -54,8 +55,6 @@ public final class UptimeServer {
         new UptimeServer().startServer(8080);
     }
     public void startServer(int port) throws Exception {
-        final Properties properties = loadConfigFile();
-        final String hostName = properties.getProperty("lcf4j.server.host");
         EventLoopGroup bossGroup = new NioEventLoopGroup(2);
         EventLoopGroup workerGroup = new NioEventLoopGroup(10);
         Runnable listeningTask = () -> {
@@ -77,7 +76,7 @@ public final class UptimeServer {
 
                 try {
                     logger.info("Server listening for client requests");
-                    NodeRegistry.addActiveNode(new NodeData(hostName, channelFuture.channel().remoteAddress().toString()));
+                    NodeRegistry.addActiveNode(new NodeData(ClusterConfig.getNodeServerName(), channelFuture.channel().localAddress().toString()));
 //                    logger.info("[ Node Count : " + NodeRegistry.getActiveNodeCount() + "] " +
 //                            "[ Active Node List : " + NodeRegistry.getActiveNodeDataList() + "]");
 //                    logger.info("[ Node Count : " + NodeRegistry.getActiveNodeCount() + "] [ Active Node List : " + NodeRegistry.getActiveNodeKeyList() + "]");
