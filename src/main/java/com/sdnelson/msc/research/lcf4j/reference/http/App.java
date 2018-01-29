@@ -1,5 +1,6 @@
 package com.sdnelson.msc.research.lcf4j.reference.http;
 
+import com.sdnelson.msc.research.lcf4j.core.ClusterNode;
 import com.sdnelson.msc.research.lcf4j.util.ClusterConfig;
 import org.apache.log4j.Logger;
 
@@ -8,30 +9,34 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class App {
 
     final static Logger logger = Logger.getLogger(App.class);
+    private static ExecutorService serverListener = Executors.newFixedThreadPool(10);
 
     public static void main(String[] args) throws Exception {
         new App().initConfigProperties();
+        logger.info(ClusterConfig.getNodeServerPortSsl() + " Started, ok.");
+        new UptimeServer().startServer(ClusterConfig.getNodeServerPortSsl());
 
-        for (int i = 1; i < 2 ; i++) {
-            new UptimeServer().startServer(8080);
-        }
+        logger.info("Nodes list found - " + ClusterConfig.getClusterNodeList().toString());
 
-//        for (int i = 1; i < 3; i++) {
-//            new Client("localhost", 8080);
-//        }
+            for (ClusterNode nodeServer : ClusterConfig.getClusterNodeList()) {
+                    Runnable runnableTask = () -> {
+                        try {
+                            new Client(nodeServer.getHost(), nodeServer.getPort());
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    };
+                serverListener.execute(runnableTask);
+            }
 
-//        logger.info("Nodes list found - " + nodeList);
-//        for (String node : nodeList) {
-//            node = node.trim();
-//            logger.info("Node " + node);
-//            new Client(
-//                    node.split(":")[0].trim(), Integer.valueOf(node.split(":")[1].trim()).intValue());
-//        }
-//        logger.info("ok.");
+        logger.info("ok.");
+
 
     }
 

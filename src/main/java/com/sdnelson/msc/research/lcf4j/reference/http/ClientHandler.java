@@ -53,7 +53,7 @@ public class ClientHandler extends SimpleChannelInboundHandler<Object> {
         }
         ctx.channel().writeAndFlush(new TextWebSocketFrame("NodeData Hash : " + hashtext + ":" +" Node Count : " + NodeRegistry.getNodeCount()));
         try {
-            Thread.sleep(1000);
+            Thread.sleep(3000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

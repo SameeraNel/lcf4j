@@ -25,9 +25,9 @@ public final class Client {
 
     final static Logger logger = Logger.getLogger(Client.class);
     // Sleep 5 seconds before a reconnection attempt.
-    static final int RECONNECT_DELAY = Integer.parseInt(System.getProperty("reconnectDelay", "0"));
+    static final int RECONNECT_DELAY = Integer.parseInt(System.getProperty("reconnectDelay", "10"));
     // Reconnect when the server sends nothing for 10 seconds.
-    private final int READ_TIMEOUT = Integer.parseInt(System.getProperty("readTimeout", "1"));
+    private final int READ_TIMEOUT = Integer.parseInt(System.getProperty("readTimeout", "2"));
     private ClientHandler handler;
     private Bootstrap bootstrap;
     private static EventLoopGroup group = new NioEventLoopGroup(1);
@@ -66,7 +66,7 @@ public final class Client {
 //                hashtext += number.toString(16);
 //            }
             channelFuture.channel().writeAndFlush(new TextWebSocketFrame("NodeData Hash : " + hashtext + ":" +" Node Count : " + NodeRegistry.getNodeCount()));
-            Thread.sleep(1000);
+            Thread.sleep(3000);
         }
     }
 
