@@ -23,7 +23,10 @@ public final class ClusterConfig {
     private static final String SERVER_MASTER_THREADPOOL_SIZE = "server.master.threadpool.size";
     private static final String SERVER_SLAVE_THREADPOOL_SIZE = "server.slave.threadpool.size";
     private static final String CLIENT_SLAVE_THREADPOOL_SIZE = "client.slave.threadpool.size";
-    private static final java.lang.String NODE_SERVER_PORT_SSL = "node.server.port.ssl";
+    private static final String NODE_SERVER_PORT_SSL = "node.server.port.ssl";
+    private static final String CLIENT_DATA_SYNC_INTERVAL = "client.data.sync.interval";
+    private static final String SERVER_REFRESH_INTERVAL = "server.refresh.interval";
+
 
     private static Properties properties;
     private static List<ClusterNode> clusterNodeList;
@@ -33,6 +36,8 @@ public final class ClusterConfig {
     private static int serverMasterThreadpoolSize;
     private static int serverSlaveThreadpoolSize;
     private static int clientSlaveThreadpoolSize;
+    private static int clientDataSyncInterval;
+    private static int serverRefreshInterval;
 
     public static void initClusterConfig() throws Exception {
         properties = loadConfigFile();
@@ -42,6 +47,16 @@ public final class ClusterConfig {
         loadServerMasterThreadpoolSize();
         loadServerSlaveThreadpoolSize();
         loadClientSlaveThreadpoolSize();
+        loadClientDataSyncInterval();
+        loadServerRefreshInterval();
+    }
+
+    private static void loadServerRefreshInterval() {
+        serverRefreshInterval = Integer.valueOf(properties.getProperty(SERVER_REFRESH_INTERVAL));
+    }
+
+    private static void loadClientDataSyncInterval() {
+        clientDataSyncInterval = Integer.valueOf(properties.getProperty(CLIENT_DATA_SYNC_INTERVAL));
     }
 
     private static void loadNodeServerPortSsl() {
@@ -85,23 +100,37 @@ public final class ClusterConfig {
     public static List<ClusterNode> getClusterNodeList() {
         return clusterNodeList;
     }
+
     public static String getNodeServerName() {
         return nodeServerName;
     }
+
     public static int getNodeServerPort() {
         return nodeServerPort;
     }
+
     public static int getNodeServerPortSsl() {
         return nodeServerPortSsl;
     }
+
     public static int getServerMasterThreadpoolSize() {
         return serverMasterThreadpoolSize;
     }
+
     public static int getServerSlaveThreadpoolSize() {
         return serverSlaveThreadpoolSize;
     }
+
     public static int getClientSlaveThreadpoolSize() {
         return clientSlaveThreadpoolSize;
+    }
+
+    public static int getClientDataSyncInterval() {
+        return clientDataSyncInterval;
+    }
+
+    public static int getServerRefreshInterval() {
+        return serverRefreshInterval;
     }
 
     private static Properties loadConfigFile() {

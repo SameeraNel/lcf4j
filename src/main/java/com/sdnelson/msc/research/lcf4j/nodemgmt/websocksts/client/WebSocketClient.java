@@ -43,10 +43,10 @@ public final class WebSocketClient {
         serverListener = Executors.newFixedThreadPool(threadCount);
     }
 
-    public static void main(String[] args) throws Exception {
-        ClusterConfig.initClusterConfig();
-        new WebSocketClient(1).startClient("localhost", 8444);
-    }
+//    public static void main(String[] args) throws Exception {
+//        ClusterConfig.initClusterConfig();
+//        new WebSocketClient(1).startClient("localhost", 8444);
+//    }
 
     public void startClient(final String host, final int port) throws Exception {
         final String nodeServerName = ClusterConfig.getNodeServerName();
@@ -55,20 +55,6 @@ public final class WebSocketClient {
         logger.info("Node Client is Starting @ " + nodeServerName + " for " + host + ":" + port );
         URI uri = new URI(URL);
         String scheme = uri.getScheme() == null? WEB_SOCKETS_SCHEME : uri.getScheme();
-//        final String host = uri.getHost() == null? LOCALHOST_ADDRESS : uri.getHost();
-//        final int port;
-//        if (uri.getPort() == -1) {
-//            if (WEB_SOCKETS_SCHEME.equalsIgnoreCase(scheme)) {
-//                port = 80;
-//            } else if (WSSWEB_SOCKETS_SECURE_SCHEME.equalsIgnoreCase(scheme)) {
-//                port = 443;
-//            } else {
-//                port = -1;
-//            }
-//        } else {
-//            port = uri.getPort();
-//        }
-
         if (!WEB_SOCKETS_SCHEME.equalsIgnoreCase(scheme) &&
                 !WSSWEB_SOCKETS_SECURE_SCHEME.equalsIgnoreCase(scheme)) {
             System.err.println(ONLY_WS_S_IS_SUPPORTED);
@@ -124,7 +110,7 @@ public final class WebSocketClient {
                     }
                     //Request for node sync, cache and config are synced from the on the fly messages
                     channel.writeAndFlush(WebSocketFrameUtil.getNodeDataWebSocketFrame());
-                    Thread.sleep(1000);
+                    Thread.sleep(ClusterConfig.getClientDataSyncInterval());
                 }
 //                while (true) {
 //                    WebSocketFrame frame = new TextWebSocketFrame(ch.localAddress().toString());

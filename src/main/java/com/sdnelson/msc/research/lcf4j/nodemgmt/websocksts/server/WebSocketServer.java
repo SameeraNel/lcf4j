@@ -24,17 +24,13 @@ import java.util.concurrent.Executors;
 public final class WebSocketServer {
 
     final static org.apache.log4j.Logger logger = Logger.getLogger(WebSocketServer.class);
-    public final String SSL_SCHEME = "ssl";
-//    final boolean SSL = System.getProperty(SSL_SCHEME) != null;
     final boolean SSL = true;
     final ExecutorService serverListener = Executors.newFixedThreadPool(1);
 
-
-
-    public static void main(String[] args) throws Exception {
-        ClusterConfig.initClusterConfig();
-        new WebSocketServer().startServer("localhost", 8444);
-    }
+//    public static void main(String[] args) throws Exception {
+//        ClusterConfig.initClusterConfig();
+//        new WebSocketServer().startServer("localhost", 8444);
+//    }
 
     public void startServer(final String serverName, final int port) throws Exception {
         logger.info("Node Server is Starting @ " + serverName + ":"+ port + " ...");
@@ -77,7 +73,7 @@ public final class WebSocketServer {
                 CacheRegistry.getCacheMap();
                 ConfigRegistry.getAllConfigData();
                 try {
-                    Thread.sleep(3000);
+                    Thread.sleep(ClusterConfig.getServerRefreshInterval());
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
